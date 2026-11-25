@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### Changed
+
+- M3.1 stems are opt-in: new `stems` mode `off` (default) | `auto` | `on`
+  (`MIXCONSOLE_STEMS`, `mixconsole mix --stems`). `off` disables the stem families
+  ("stems disabled") and never separates; `auto` needs a key clash or an unavoidable
+  measured vocal collision plus a `stems_auto_margin` (0.05) score win over the best plain
+  family; `on` keeps the M3 behaviour. Scorer `heuristic@5`: heuristic-only vocal data
+  penalises plain blends only mildly.
+- Verification gates stem seams on separation bleed (`stem_leakage`, `max_stem_leakage`
+  0.25; None when unmeasured). The gain-repaired re-check now also applies the vocal-overlap
+  limit.
+
 ### Added
 
 - M4 transition corpus (`bench/pairs.yaml`: 37 CC0/CC-BY tracks, 36 pairs, licence and

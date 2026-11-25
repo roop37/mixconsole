@@ -140,13 +140,14 @@ def render_html(
                 result.get("reason"),
                 _na(result.get("vocal_overlap_seconds")),
                 _na(result.get("bass_overlap_bars")),
+                _na(result.get("stem_leakage")),
             )
         )
         + "</tr>"
         for result in verifications
     )
     explanation = transition.explanation.chosen_because if transition.explanation else ""
-    return f"""<!doctype html><html lang="en"><meta charset="utf-8"><title>MixConsole transition</title><style>body{{font:16px system-ui;max-width:1000px;margin:auto;padding:24px;background:#101723;color:#eee}}svg{{width:100%;background:#1b2637}}article{{padding:12px;border:1px solid #445;margin:8px 0}}table{{border-collapse:collapse;display:block;overflow-x:auto}}th,td{{border:1px solid #445;padding:5px 12px}}audio{{width:100%}}summary{{cursor:pointer}}</style><h1>{html.escape(Path(a.file).name)} → {html.escape(Path(b.file).name)}</h1><p>Chosen: {html.escape(transition.family)}. {html.escape(explanation)}</p><p>Markers: beat (gray), bar (blue), phrase (amber), section (purple), chosen cue (red).</p><h2>Deck A</h2>{_waveform(a, transition.exit.seconds)}<h2>Deck B</h2>{_waveform(b, transition.entry.seconds)}<h2>Automation</h2>{_automation(transition.automation)}<h2>Audition candidates</h2>{cards}<h2>Score breakdown</h2><table><tr><th>ID</th><th>Family</th><th>Score</th>{header}</tr>{rows}</table><h2>Verification</h2><table><tr><th>Candidate</th><th>Passed</th><th>Reason</th><th>Vocal overlap (s)</th><th>Bass overlap (bars)</th></tr>{checks}</table><details><summary>Pruned proposals ({len(transition.explanation.rejected_candidates) if transition.explanation else 0})</summary><ul>{rejections}</ul></details></html>"""
+    return f"""<!doctype html><html lang="en"><meta charset="utf-8"><title>MixConsole transition</title><style>body{{font:16px system-ui;max-width:1000px;margin:auto;padding:24px;background:#101723;color:#eee}}svg{{width:100%;background:#1b2637}}article{{padding:12px;border:1px solid #445;margin:8px 0}}table{{border-collapse:collapse;display:block;overflow-x:auto}}th,td{{border:1px solid #445;padding:5px 12px}}audio{{width:100%}}summary{{cursor:pointer}}</style><h1>{html.escape(Path(a.file).name)} → {html.escape(Path(b.file).name)}</h1><p>Chosen: {html.escape(transition.family)}. {html.escape(explanation)}</p><p>Markers: beat (gray), bar (blue), phrase (amber), section (purple), chosen cue (red).</p><h2>Deck A</h2>{_waveform(a, transition.exit.seconds)}<h2>Deck B</h2>{_waveform(b, transition.entry.seconds)}<h2>Automation</h2>{_automation(transition.automation)}<h2>Audition candidates</h2>{cards}<h2>Score breakdown</h2><table><tr><th>ID</th><th>Family</th><th>Score</th>{header}</tr>{rows}</table><h2>Verification</h2><table><tr><th>Candidate</th><th>Passed</th><th>Reason</th><th>Vocal overlap (s)</th><th>Bass overlap (bars)</th><th>Stem leakage</th></tr>{checks}</table><details><summary>Pruned proposals ({len(transition.explanation.rejected_candidates) if transition.explanation else 0})</summary><ul>{rejections}</ul></details></html>"""
 
 
 def write_html(

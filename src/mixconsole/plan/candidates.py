@@ -50,6 +50,17 @@ class PlanContext:
 class PlanResult:
     candidates: list[Candidate]
     rejected: list[RejectedCandidate]
+    stem_note: str = ""
+
+
+STEM_FAMILY_NAMES = ("stem_handoff", "vocal_over_instrumental")
+PLAIN_FAMILY_NAMES = (
+    "beatmatch_blend",
+    "filter_sweep",
+    "echo_out",
+    "cut_on_downbeat",
+    "trim_crossfade",
+)
 
 
 def effective_tempo(b: TrackAnalysis, bpm: float | None) -> float:
@@ -130,6 +141,13 @@ def plan_pair(
     ctx = PlanContext(cues(a, exit_track=True), cues(b, exit_track=False), LENGTHS, bpm, strategy)
     for family in families():
         proposed: list[Candidate] = []
+        if family.name in STEM_FAMILY_NAMES and settings.stems == "off":
+            rejected.append(
+                RejectedCandidate(
+                    candidate_id=f"{family.name}_na", family=family.name, reason="stems disabled"
+                )
+            )
+            continue
         unavailable = getattr(family, "unavailable", None)
         reason_na = unavailable(a, b) if callable(unavailable) else None
         if reason_na:
@@ -157,5 +175,60 @@ def plan_pair(
             proposed.append(candidate)
         proposed.sort(key=lambda c: (-c.score, c.exit_seconds, c.entry_seconds, c.length_bars))
         result.extend(proposed[: settings.candidates_per_family])
+    note = {"off": "Stems: off (stem families not applicable: stems disabled)."}.get(
+        settings.stems, "Stems: on (stem families always compete)."
+    )
+    if settings.stems == "auto":
+        result, note = _gate_stems(result, rejected, a, b, settings)
     result.sort(key=lambda c: (-c.score, c.id))
-    return PlanResult(result[: settings.max_candidates], rejected)
+    return PlanResult(result[: settings.max_candidates], rejected, note)
+
+
+def _gate_stems(
+    result: list[Candidate],
+    rejected: list[RejectedCandidate],
+    a: TrackAnalysis,
+    b: TrackAnalysis,
+    settings: Settings,
+) -> tuple[list[Candidate], str]:
+    """``stems=auto``: keep stem candidates only with a concrete reason and a clear score win."""
+    from mixconsole.score.heuristic import key_compatibility, key_reliability
+
+    stem = [c for c in result if c.family in STEM_FAMILY_NAMES]
+    if not stem:
+        return result, "Stems: auto (no stem candidate applicable)."
+    plain = [c for c in result if c.family in PLAIN_FAMILY_NAMES]
+    key = key_compatibility(a, b)
+    reliability = key_reliability(a, b)
+    reasons: list[str] = []
+    if key < 0.2 and reliability > 0:
+        reasons.append(f"key clash (compatibility {key:.2f}, key reliability {reliability:.2f})")
+    blends = ("beatmatch_blend", "filter_sweep")
+    collided = any(r.family in blends and r.reason.startswith("lead vocals") for r in rejected)
+    if collided and not any(c.family in blends for c in result):
+        reasons.append("measured vocal collision that no plain blend avoids")
+    best_stem = max(c.score for c in stem)
+    best_plain = max((c.score for c in plain), default=None)
+    if not reasons:
+        decline = "no key clash or unavoidable vocal collision"
+    elif best_plain is not None and best_stem < best_plain + settings.stems_auto_margin:
+        decline = (
+            f"best stem {best_stem:.3f} does not beat best plain {best_plain:.3f} "
+            f"by {settings.stems_auto_margin:.2f} (reason: {'; '.join(reasons)})"
+        )
+    else:
+        beaten = "no plain candidate" if best_plain is None else f"best plain {best_plain:.3f}"
+        return result, (
+            f"Stems: auto allowed ({'; '.join(reasons)}); best stem {best_stem:.3f} beats {beaten} "
+            f"by >= {settings.stems_auto_margin:.2f}."
+        )
+    seen: list[Family] = list(dict.fromkeys(c.family for c in stem))
+    rejected.extend(
+        RejectedCandidate(
+            candidate_id=f"{family}_auto", family=family, reason=f"stems auto: {decline}"
+        )
+        for family in seen
+    )
+    return [
+        c for c in result if c.family not in STEM_FAMILY_NAMES
+    ], f"Stems: auto declined ({decline})."

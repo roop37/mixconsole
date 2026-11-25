@@ -31,6 +31,7 @@ class SeamMetrics:
     # Stem seams only (measured on the rendered, post-automation stems); None otherwise.
     vocal_overlap_seconds: float | None = None
     bass_overlap_bars: float | None = None
+    stem_leakage: float | None = None
 
     def as_dict(self) -> dict[str, float | int | bool | str | None]:
         return vars(self).copy()
@@ -151,6 +152,47 @@ def bass_overlap_bars(
     return measured[1] * (SAMPLE_RATE // 50) / SAMPLE_RATE * bpm / (60 * beats_per_bar)
 
 
+def stem_leakage(inspection: RenderInspection | None) -> float | None:
+    """Separation bleed in the handoff window, in [0, 1]; None when it cannot be measured.
+
+    For each deck, the vocal stem is compared with the drums, bass and other stems in 100 ms
+    blocks where the vocal stem is audible: the leakage of a block is the largest absolute
+    zero-lag normalised correlation with an instrumental stem (a clean separation leaves them
+    uncorrelated; a vocal stem carrying hats, kicks or guitar copies correlates). Blocks are
+    weighted by vocal energy; the result is the worse deck. Unmeasured (no stems, no audible
+    vocal) is None, never 0. Demucs folds its residual into ``other``, so residual energy is
+    part of the ``other`` correlation.
+    """
+    if inspection is None:
+        return None
+    block = SAMPLE_RATE // 10
+    worst: float | None = None
+    for deck in ("a", "b"):
+        vocal = inspection.stem_sources.get(f"{deck}:vocals")
+        others = [inspection.stem_sources.get(f"{deck}:{n}") for n in ("drums", "bass", "other")]
+        if vocal is None or any(o is None for o in others):
+            continue
+        v = vocal.astype(np.float64).mean(axis=1)
+        o = [x.astype(np.float64).mean(axis=1) for x in others if x is not None]
+        total = weight = 0.0
+        for start in range(0, len(v) - block + 1, block):
+            seg = v[start : start + block]
+            energy = float(np.sum(seg * seg))
+            if energy < 1e-6 * block:
+                continue
+            corr = max(
+                abs(float(np.dot(seg, x[start : start + block])))
+                / (np.sqrt(energy * float(np.sum(x[start : start + block] ** 2))) + 1e-12)
+                for x in o
+            )
+            total += corr * energy
+            weight += energy
+        if weight > 0:
+            value = total / weight
+            worst = value if worst is None else max(worst, value)
+    return worst
+
+
 def verify_seam(
     audio: Audio,
     seam_frame: int,
@@ -162,6 +204,7 @@ def verify_seam(
     max_drift: float = 5.0,
     max_low_overlap: float = 1.0,
     max_vocal_overlap_beats: float = 1.0,
+    max_stem_leakage: float = 0.25,
     beats_per_bar: int = 4,
     inspection: RenderInspection | None = None,
 ) -> SeamMetrics:
@@ -197,7 +240,10 @@ def verify_seam(
     bass_overlap = bass_overlap_bars(inspection, bpm, beats_per_bar)
     # Stem seams measure the bass stems; whole-mix low bands would count the kicks.
     overlap = bass_overlap if bass_overlap is not None else _low_overlap(inspection, bpm)
+    leakage = stem_leakage(inspection)
     failures: list[str] = []
+    if leakage is not None and leakage > max_stem_leakage:
+        failures.append(f"stem leakage {leakage:.2f} exceeds {max_stem_leakage:.2f}")
     if dip > max_dip:
         failures.append(f"loudness dip {dip:.2f} LU exceeds {max_dip:.2f}")
     if bump > max_dip:
@@ -232,4 +278,5 @@ def verify_seam(
         "; ".join(failures) or "passed",
         vocal_overlap,
         bass_overlap,
+        leakage,
     )

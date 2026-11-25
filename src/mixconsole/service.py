@@ -193,6 +193,7 @@ def _candidate_script(
     *,
     alternatives: list["Candidate"],
     rejected: list["RejectedCandidate"],
+    stem_note: str = "",
 ) -> "MixScript":
     from mixconsole.mixscript.models import (
         CandidateSummary,
@@ -351,7 +352,7 @@ def _candidate_script(
                 explanation=Explanation(
                     chosen_because=(
                         f"Ranked {candidate.family} at {candidate.score:.3f} from "
-                        "the score and hard constraints."
+                        "the score and hard constraints." + (f" {stem_note}" if stem_note else "")
                     ),
                     score_breakdown=candidate.features,
                     rejected_candidates=rejected,
@@ -393,7 +394,11 @@ def plan_pair(
         raise ValueError("no valid transition candidates")
     chosen = plan.candidates[0]
     script = _candidate_script(
-        chosen, analyses, alternatives=plan.candidates[:candidates], rejected=plan.rejected
+        chosen,
+        analyses,
+        alternatives=plan.candidates[:candidates],
+        rejected=plan.rejected,
+        stem_note=plan.stem_note,
     )
     checkpoint(progress, cancel, "plan", 1.0)
     return MixResult(script, chosen.id, None, {})
@@ -536,7 +541,11 @@ def mix_pair(
             continue
         checkpoint(progress, cancel, "render", index / max(1, len(render_order)))
         script = _candidate_script(
-            candidate, analyses, alternatives=shortlist, rejected=plan.rejected
+            candidate,
+            analyses,
+            alternatives=shortlist,
+            rejected=plan.rejected,
+            stem_note=plan.stem_note,
         )
         try:
             pcm, seam, inspection = excerpt(candidate, script)
@@ -556,6 +565,7 @@ def mix_pair(
             max_drift=load_settings().max_drift_ms,
             max_low_overlap=load_settings().max_low_overlap_bars,
             max_vocal_overlap_beats=load_settings().max_vocal_overlap_beats,
+            max_stem_leakage=load_settings().max_stem_leakage,
             beats_per_bar=candidate.beats_per_bar,
             inspection=inspection,
         )
@@ -572,7 +582,11 @@ def mix_pair(
         ):
             candidate.seam_gain_db = min(6.0, metric.loudness_dip_lu * 1.5)
             repaired_script = _candidate_script(
-                candidate, analyses, alternatives=shortlist, rejected=plan.rejected
+                candidate,
+                analyses,
+                alternatives=shortlist,
+                rejected=plan.rejected,
+                stem_note=plan.stem_note,
             )
             pcm, seam, inspection = excerpt(candidate, repaired_script)
             metric = verify_seam(
@@ -585,6 +599,9 @@ def mix_pair(
                 max_peak=load_settings().max_true_peak_dbtp,
                 max_drift=load_settings().max_drift_ms,
                 max_low_overlap=load_settings().max_low_overlap_bars,
+                max_vocal_overlap_beats=load_settings().max_vocal_overlap_beats,
+                max_stem_leakage=load_settings().max_stem_leakage,
+                beats_per_bar=candidate.beats_per_bar,
             )
             checks.append({"candidate": candidate.id + "_gain_adjusted", **metric.as_dict()})
         if candidate in shortlist:
@@ -614,7 +631,11 @@ def mix_pair(
             "no_sync",
         )
         fallback = _candidate_script(
-            chosen, analyses, alternatives=shortlist, rejected=plan.rejected
+            chosen,
+            analyses,
+            alternatives=shortlist,
+            rejected=plan.rejected,
+            stem_note=plan.stem_note,
         )
         pcm, seam, inspection = excerpt(chosen, fallback)
         measured = verify_seam(
@@ -628,7 +649,11 @@ def mix_pair(
     if chosen.id == "fallback" and measured and measured.loudness_dip_lu > 1.5:
         chosen.seam_gain_db = min(6.0, measured.loudness_dip_lu * 1.5)
         fallback = _candidate_script(
-            chosen, analyses, alternatives=shortlist, rejected=plan.rejected
+            chosen,
+            analyses,
+            alternatives=shortlist,
+            rejected=plan.rejected,
+            stem_note=plan.stem_note,
         )
         pcm, seam, inspection = excerpt(chosen, fallback)
         measured = verify_seam(
@@ -659,8 +684,8 @@ def mix_pair(
             f"Selected {chosen.family} after {len(checks)} verification checks; "
             f"drift {_fmt(measured.drift_ms, 'ms')}, "
             f"loudness dip {measured.loudness_dip_lu:.2f} LU, "
-            f"peak {measured.true_peak_dbtp:.2f} dBTP."
-        )
+            f"peak {measured.true_peak_dbtp:.2f} dBTP. {plan.stem_note}"
+        ).rstrip()
     full_stems = (
         (
             stems_for(analyses[0], audio_a.samples, "exit", load_settings().cache_dir),

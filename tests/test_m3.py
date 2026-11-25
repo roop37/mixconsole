@@ -35,7 +35,7 @@ from tests.oracle import OracleSeparator, oracle_track
 
 A_VOCALS = tuple(range(20, 26))
 B_VOCALS = (*range(3), *range(8, 14), *range(20, 30))
-settings = Settings()
+settings = Settings().model_copy(update={"stems": "on"})
 
 
 @dataclass

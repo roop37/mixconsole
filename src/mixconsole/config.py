@@ -30,9 +30,28 @@ class Settings(BaseSettings):
     max_low_overlap_bars: float = Field(default=1.0, ge=0)
     max_stretch: float = Field(default=0.08, gt=0, le=0.25)
     max_vocal_overlap_beats: float = Field(default=1.0, ge=0)
-    stems: Literal["auto", "on", "off"] = Field(
-        default="auto",
-        description="auto: separate stems when the stems extra and htdemucs weights are present.",
+    stems: Literal["off", "auto", "on"] = Field(
+        default="off",
+        description=(
+            "off: stem families are not applicable and no separation runs. "
+            "auto: separate stems (extra + weights needed) but allow stem families only for a "
+            "concrete reason (key clash or an unavoidable vocal collision) and when the best "
+            "stem candidate beats the best plain one by stems_auto_margin. "
+            "on: stem families always compete."
+        ),
+    )
+    stems_auto_margin: float = Field(
+        default=0.05, ge=0, le=1, description="Score margin a stem candidate needs in auto mode."
+    )
+    max_stem_leakage: float = Field(
+        default=0.25,
+        gt=0,
+        le=1,
+        description=(
+            "Separation-bleed gate for stem seams: the energy-weighted |zero-lag correlation| of "
+            "the vocal stem with the drums/bass/other stems over the handoff window. Above "
+            "this the candidate fails verification."
+        ),
     )
     stems_device: Literal["auto", "cpu", "mps", "cuda"] = "auto"
     offline: bool = Field(

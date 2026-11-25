@@ -360,9 +360,20 @@ def mix_command(
     candidates: Annotated[int, typer.Option(min=1, max=60)] = 3,
     report_dir: Annotated[Path | None, typer.Option()] = None,
     format: Annotated[str | None, typer.Option(help="wav or flac")] = None,
+    stems: Annotated[
+        str | None,
+        typer.Option(help="off (default), auto (only when clearly better) or on; MIXCONSOLE_STEMS"),
+    ] = None,
 ) -> None:
     """Render a two-song mix with audition candidates and a local report."""
+    import os
+
     from mixconsole.service import mix_pair
+
+    if stems is not None:
+        if stems not in ("off", "auto", "on"):
+            raise typer.BadParameter("stems must be off, auto or on")
+        os.environ["MIXCONSOLE_STEMS"] = stems
 
     if format is not None:
         if format not in ("wav", "flac"):

@@ -24,6 +24,8 @@ class RenderInspection:
     beat_warp: list[list[int]] | None = None
     # Post-automation stem signals, keyed "a:vocals", "b:bass", ... (stem families only).
     stem_contributions: dict[str, Audio] = field(default_factory=dict[str, Audio])
+    # Raw (pre-automation, post-warp) stems of the handoff window, same keys; for bleed checks.
+    stem_sources: dict[str, Audio] = field(default_factory=dict[str, Audio])
 
 
 def _frame(seconds: float, maximum: int) -> int:
@@ -147,6 +149,8 @@ def render_transition(
             contribution_a += ca
             contribution_b += cb
             if inspection is not None:
+                inspection.stem_sources[f"a:{name}"] = part_a
+                inspection.stem_sources[f"b:{name}"] = part_b
                 inspection.stem_contributions[f"a:{name}"] = ca
                 inspection.stem_contributions[f"b:{name}"] = cb
         mixed = contribution_a + contribution_b

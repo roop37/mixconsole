@@ -158,3 +158,31 @@ Required test coverage of 91% reached. Total coverage: 92.87%
 255 passed in 46.63s            (pytest -m "not slow" -n 4 --dist worksteal)
 real 52.97  user 170.31  sys 14.35
 ```
+
+## M3.1 stems opt-in (2026-11-26)
+
+Owner listening test: stem families won almost every blendable pair and real-song vocals sounded bad
+(Demucs bleed / phasey vocals). Stems are now optional and must earn their place.
+
+- **`stems` = `off` (default) | `auto` | `on`** (`Settings.stems`, `MIXCONSOLE_STEMS`, `mixconsole mix --stems`).
+  `off`: both stem families are rejected with "stems disabled", analysis uses the heuristic vocal backend, no
+  separation. `on`: M3 behaviour. `auto`: separation runs (measured vocals are needed to judge), then
+  `plan.candidates._gate_stems` keeps stem candidates only if (a) key clash (compatibility < 0.2 with
+  key reliability > 0) or a measured vocal collision rejected every beatmatch_blend/filter_sweep, AND (b) the best stem score
+  beats the best plain candidate (beatmatch_blend, filter_sweep, echo_out, cut_on_downbeat, trim_crossfade)
+  by `stems_auto_margin` (default 0.05). The decision text (allowed / declined and why) is appended to
+  `Explanation.chosen_because`; declined families appear in the pruned list as `<family>_auto`.
+- **Scoring:** the plain-vs-stem bias came from `vocal_safety` (stems 1.0, plain penalised by the over-detecting
+  heuristic). Without stem-grade vocal data in the window the collision penalty is now halved (scorer
+  `heuristic@5`). Stem priors unchanged (they only matter when stems are eligible).
+- **Bleed check:** `verify.metrics.stem_leakage` = energy-weighted max |zero-lag correlation| of the vocal stem
+  with drums/bass/other in 100 ms blocks (raw, warped stems of the handoff window, `RenderInspection.stem_sources`).
+  Fails above `max_stem_leakage` (0.25, uncalibrated: no ground-truth separation of real songs exists here;
+  tune from the reported values); None when unmeasurable. Residual energy lives in `other` (folded), so it is
+  covered by that correlation.
+- **Also fixed:** the gain-repaired re-verification skipped the vocal-overlap limit; it now applies it.
+- **Tests:** `tests/test_stems_optin.py` (default off and no separation, CLI option, auto without clash -> plain,
+  auto with clash + margin, vocal-collision reason, leaky synthetic stem fails, None when unmeasured).
+  `scripts/check.sh` green (285 tests, coverage 93.0 %, 56 s).
+- **Real pairs:** `output/m3fix-real/<pair>-default` and `-auto` (table in the lead's report; metrics in each
+  `report/report.json`).

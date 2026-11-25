@@ -10,7 +10,7 @@ from mixconsole.analysis.models import TrackAnalysis
 from mixconsole.plan import vocals
 from mixconsole.plan.candidates import Candidate, effective_tempo, has_beat_grid
 
-SCORER_VERSION = "heuristic@4"
+SCORER_VERSION = "heuristic@5"
 
 
 @lru_cache(maxsize=1)
@@ -109,7 +109,12 @@ def vocal_safety(c: Candidate, a: TrackAnalysis, b: TrackAnalysis) -> float:
         va, vb, c.exit_seconds, c.entry_seconds, c.duration, scale or 1.0
     )
     collision = min(1.0, 1.5 * seconds / c.duration)
-    return 1.0 - collision * confidence
+    # The spectral heuristic over-detects vocals (most bars of a real song), so without
+    # stem-grade data in the window the penalty is only mild and never favours stem families.
+    stem_grade = vocals.in_stem_region(
+        a, c.exit_seconds, c.exit_seconds + c.duration
+    ) and vocals.in_stem_region(b, c.entry_seconds, c.entry_seconds + c.duration)
+    return 1.0 - collision * confidence * (1.0 if stem_grade else 0.5)
 
 
 def score(c: Candidate, a: TrackAnalysis, b: TrackAnalysis, style: str) -> dict[str, float]:

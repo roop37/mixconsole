@@ -85,8 +85,14 @@ Time-stretching uses the MIT-licensed Signalsmith binding in the core.
 
 ### Stems and vocals (M3)
 
-With the `stems` extra and weights present (`MIXCONSOLE_STEMS=auto`, the default; `off`
-disables, `on` requires them) analysis separates only the last and first 60 s of each
+Stems are opt-in: `stems` is `off` by default (`MIXCONSOLE_STEMS`, or `mixconsole mix --stems
+{off,auto,on}`). `off` plans plain transitions only and never runs separation. `auto` allows
+the stem families only for a concrete reason (a key clash, or a measured vocal collision no
+plain blend avoids) and only when the best stem candidate beats the best plain one by
+`stems_auto_margin` (0.05); the reason is recorded in the explanation. `on` lets stem families
+always compete. Stem seams also fail verification when separation bleed (vocal stem
+correlated with the instrumental stems) exceeds `max_stem_leakage` (0.25). With the `stems`
+extra and weights present, `auto`/`on` analysis separates only the last and first 60 s of each
 track's music with Demucs `htdemucs` (CPU or Apple MPS, cached per PCM hash, window and
 model). Vocal activity per bar and per beat plus lyric gaps (>= 300 ms) are stored in
 `TrackAnalysis.vocal_activity`; without the extra a low-confidence spectral heuristic fills
