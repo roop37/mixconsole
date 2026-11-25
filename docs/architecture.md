@@ -21,11 +21,12 @@ M2 uses six stem-free families, a style-weighted heuristic and audio-derived
 seam checks. M3 adds optional stems (Demucs windows), vocal activity and the `stem_handoff` and
 `vocal_over_instrumental` families.
 
-M4.5 adds FastAPI HTTP endpoints, job state, SSE progress, portable SQLite projects,
-append-only MixScript history, a library index and preview artifacts. M5 adds a
-React/Vite/TypeScript console. Schema-derived types will connect these clients to
-the same service contract. Waveform pyramids, range-served previews and streaming
-long-audio analysis are design targets, not M1H deliverables.
+M4.5 adds the local HTTP API (`mixconsole serve`, see [HTTP API](api.md)): FastAPI over the
+service facade, a persistent job queue with SSE progress, portable SQLite projects with
+append-only MixScript history, a library index with resumable batch scans, and precomputed UI
+artifacts (waveform peaks, lanes, Opus previews served with Range requests). Generated
+TypeScript types in `packages/schema-ts` connect the M5 React/Vite console to the same contract.
+Streaming long-audio analysis remains a design target.
 
-See the [service decision](adr/0003-service-jobs.md), [SQLite decision](adr/0004-sqlite.md)
-and [frontend decision](adr/0005-frontend.md).
+See the [service decision](adr/0003-service-jobs.md), [SQLite decision](adr/0004-sqlite.md),
+[frontend decision](adr/0005-frontend.md) and [API/jobs decision](adr/0008-sqlite-jobs-api.md).

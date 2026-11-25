@@ -1,11 +1,24 @@
-# Generated frontend types (M4.5 placeholder)
+# @mixconsole/schema-ts
 
-M1H exports MixScript v1/v1.1, TrackAnalysis v1 and benchmark-result v1 JSON Schemas
-using `uv run python scripts/gen_schema.py`; Python tests reject schema drift.
-There are no handwritten or generated TypeScript models yet.
+TypeScript types for the MixConsole HTTP API. **Generated; do not edit.**
 
-When the HTTP API exists, export its OpenAPI schema, select and pin a compatible
-OpenAPI-to-TypeScript generator, and generate this package in CI. Run generation
-into a temporary directory and byte-compare outputs to detect drift. The React/Vite
-console imports types from this package; Pydantic remains the authority. Preserve
-namespaced extensions, ordered points and stable transition/lane/effect IDs.
+- `openapi.json`: the OpenAPI document exported from the FastAPI app (`mixconsole.server`).
+- `src/api.d.ts`: `components` (one type per Pydantic model, also exported by name), `paths`
+  and `operations` (path/query params, request body, responses per status).
+
+```ts
+import type { Job, Lanes, Schema } from "@mixconsole/schema-ts";
+```
+
+Regenerate after changing any route or model:
+
+```
+uv run python scripts/gen_api_types.py          # write both files
+uv run python scripts/gen_api_types.py --check  # drift check (runs in scripts/check.sh and CI)
+```
+
+The emitter is a small Python translation of the OpenAPI 3.1 schema, so the drift check needs
+no Node toolchain. When the console (M5) adds a pnpm workspace it can swap in `openapi-typescript`
+against `openapi.json` without changing this package's contract. MixScript, TrackAnalysis and
+benchmark JSON Schemas remain in `schemas/` (`scripts/gen_schema.py`); the API embeds the
+MixScript document as an opaque object, so the UI validates edits through `POST /mixscripts`.

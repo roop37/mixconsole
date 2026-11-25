@@ -59,9 +59,9 @@ def doctor() -> None:
     table.add_row("Python", platform.python_version())
     table.add_row("ffmpeg", shutil.which("ffmpeg") or "not found (SoundFile formats still work)")
     table.add_row("extra: neural / all", "optional Beat This!; run models fetch beat_this")
-    for extra in ("stems", "ui"):
-        table.add_row(f"extra: {extra}", "placeholder (future milestone)")
-    for package in ("beat-this", "demucs", "fastapi", "torch"):
+    table.add_row("extra: stems", "optional Demucs; run models fetch htdemucs")
+    table.add_row("extra: server / ui", "mixconsole serve (fastapi + uvicorn)")
+    for package in ("beat-this", "demucs", "fastapi", "uvicorn", "torch"):
         table.add_row(package, _package_status(package))
     mps = "unavailable (torch not installed)"
     cuda = "unavailable (torch not installed)"
@@ -570,3 +570,108 @@ def listen_results_command(
     markdown = render_markdown(result)
     (kit / "results.md").write_text(markdown, encoding="utf-8")
     typer.echo(markdown)
+
+
+@app.command("serve")
+def serve_command(
+    host: Annotated[
+        str, typer.Option(help="Bind address (loopback only by default).")
+    ] = "127.0.0.1",
+    port: Annotated[int, typer.Option(min=1, max=65535)] = 8765,
+    data_dir: Annotated[Path | None, typer.Option(help="Projects, index, jobs, token.")] = None,
+    allow_remote: Annotated[
+        bool, typer.Option("--allow-remote", help="Permit a non-loopback bind (not recommended).")
+    ] = False,
+    cors_origin: Annotated[
+        list[str] | None, typer.Option("--cors-origin", help="Allow a UI dev origin (repeatable).")
+    ] = None,
+) -> None:
+    """Start the local HTTP API (needs the `server` extra). Prints the access token URL."""
+    from mixconsole.server.auth import LOOPBACK_HOSTS
+
+    if host not in LOOPBACK_HOSTS and not allow_remote:
+        typer.echo("Refusing a non-loopback bind; pass --allow-remote to override.", err=True)
+        raise typer.Exit(code=2)
+    try:
+        import uvicorn
+
+        from mixconsole.server.app import create_app
+    except ImportError as exc:
+        typer.echo(
+            f"Server dependencies missing ({exc.name}): pip install 'mixconsole[server]'", err=True
+        )
+        raise typer.Exit(code=1) from exc
+    from mixconsole.server.auth import issue_token
+    from mixconsole.store.workspace import Workspace
+
+    workspace = Workspace(data_dir)
+    token = issue_token(workspace.root)
+    extra_hosts = [host] if allow_remote else []
+    api = create_app(workspace, token, allowed_hosts=extra_hosts, cors_origins=cors_origin or [])
+    typer.echo(f"MixConsole API  http://{host}:{port}/api/v1  (docs: /docs)")
+    typer.echo(f"Token file      {workspace.root / 'server.token'}")
+    typer.echo(f"Open UI with    ?token={token}")
+    try:
+        uvicorn.run(api, host=host, port=port, log_level="warning")
+    finally:
+        workspace.close()
+
+
+library_app = typer.Typer(help="Library index: batch, resumable analysis of a music folder.")
+app.add_typer(library_app, name="library")
+
+
+@library_app.command("scan")
+def library_scan_command(
+    directory: Annotated[Path, typer.Argument(exists=True, file_okay=False, help="Music folder.")],
+    data_dir: Annotated[Path | None, typer.Option()] = None,
+    workers: Annotated[int | None, typer.Option(min=1, max=32)] = None,
+) -> None:
+    """Analyse new/changed files under DIR into index.sqlite; rerun after a crash to resume."""
+    from rich.progress import Progress as Bar
+
+    from mixconsole.config import data_root
+    from mixconsole.progress import ProgressEvent
+    from mixconsole.store.library import LibraryIndex, scan_library
+
+    index = LibraryIndex(data_root(data_dir) / "index.sqlite")
+    with Bar(console=console, transient=True) as bar:
+        task = bar.add_task("scanning", total=1.0)
+
+        def show(event: ProgressEvent) -> None:
+            bar.update(task, completed=event.fraction, description=event.message or "scanning")
+
+        summary = scan_library(directory, index, workers=workers, progress=show)
+    typer.echo(
+        f"found {summary.found}, analyzed {summary.analyzed}, up to date {summary.skipped}, "
+        f"failed {summary.failed}"
+    )
+    for path, error in summary.errors.items():
+        typer.echo(f"  failed: {path}: {error}", err=True)
+    if summary.failed:
+        raise typer.Exit(code=1)
+
+
+@library_app.command("list")
+def library_list_command(
+    data_dir: Annotated[Path | None, typer.Option()] = None,
+    limit: Annotated[int, typer.Option(min=1)] = 50,
+) -> None:
+    """Show indexed tracks (hash, BPM, key, LUFS, path)."""
+    from mixconsole.config import data_root
+    from mixconsole.store.library import LibraryIndex
+
+    index = LibraryIndex(data_root(data_dir) / "index.sqlite")
+    stats = index.stats()
+    table = Table(title=f"Library: {stats.tracks} tracks, {stats.failures} failures")
+    for column in ("Hash", "BPM", "Key", "LUFS", "Path"):
+        table.add_column(column)
+    for track in index.search(limit=limit):
+        table.add_row(
+            track.hash[:12],
+            f"{track.bpm:.1f}" if track.bpm else "-",
+            f"{track.key} / {track.camelot}",
+            f"{track.lufs:.1f}" if track.lufs is not None else "-",
+            track.path,
+        )
+    console.print(table)

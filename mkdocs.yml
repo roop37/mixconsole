@@ -15,9 +15,11 @@ nav:
   - Architecture: architecture.md
   - MixScript reference: mixscript.md
   - Benchmarks: benchmarks.md
+  - HTTP API: api.md
   - Decisions:
       - License: adr/0001-license.md
       - MixScript contract: adr/0002-mixscript-contract.md
       - Service and jobs: adr/0003-service-jobs.md
       - SQLite: adr/0004-sqlite.md
       - Frontend: adr/0005-frontend.md
+      - SQLite, jobs, API: adr/0008-sqlite-jobs-api.md

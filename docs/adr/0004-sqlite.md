@@ -1,6 +1,6 @@
 # 0004: SQLite projects and library index
 
-Status: Accepted design; implementation deferred to M4.5.
+Status: Accepted; implemented in M4.5 ([0008](0008-sqlite-jobs-api.md)).
 
 ## Context
 

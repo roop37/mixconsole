@@ -3,7 +3,7 @@
 The open, inspectable AutoMix for your own files. A local-first engine for automatic
 DJ transitions, with editable, reproducible plans that explain each decision.
 
-**Status: pre-alpha — M4 bench and listening kit.** Analyze local tracks, rank transition
+**Status: pre-alpha — M4.5 service + HTTP API (on top of the M4 bench and listening kit).** Analyze local tracks, rank transition
 candidates, render a MixScript v1.1 and inspect a local HTML report. Benchmarks:
 [bench/results/LATEST.md](bench/results/LATEST.md). The console UI is a later milestone.
 
@@ -78,6 +78,14 @@ results` turns the saved vote files into win rates with bootstrap CIs; see
 [planning/M4-bench.md](planning/M4-bench.md).
 `mixconsole bench transitions` runs the seeded synthetic pair suite with a plain
 six-second linear crossfade baseline. No benchmark audio is committed.
+
+### Local API and library (M4.5)
+
+`mixconsole serve` starts a localhost-only FastAPI server (extra `server`, or `ui`) with a
+random per-run token, projects in SQLite, a persistent job queue with SSE progress, waveform
+peaks, lanes and range-served previews; `mixconsole library scan DIR` builds a resumable
+library index. See [docs/api.md](docs/api.md), [planning/M4.5-service-api.md](planning/M4.5-service-api.md) and
+the generated types in `packages/schema-ts`.
 
 The scorer is a heuristic, and verification thresholds catch measured seam issues;
 these checks are not a listening test or a claim of superiority to another player.

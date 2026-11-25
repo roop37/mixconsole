@@ -32,6 +32,7 @@ The offline gate validates this versioned metadata snapshot and rejects unknown 
 | distlib | 0.4.4 | PSF-2.0 | [upstream](https://pypi.org/project/distlib/0.4.4/) |
 | einops | 0.8.2 | MIT | [upstream](https://pypi.org/project/einops/0.8.2/) |
 | execnet | 2.1.2 | MIT | [upstream](https://pypi.org/project/execnet/2.1.2/) |
+| fastapi | 0.165.0 | MIT | [upstream](https://pypi.org/project/fastapi/0.165.0/) |
 | filelock | 4.2.11 | MIT | [upstream](https://pypi.org/project/filelock/4.2.11/) |
 | fsspec | 2026.9.0 | BSD-3-Clause | [upstream](https://pypi.org/project/fsspec/2026.9.0/) |
 | ghp-import | 2.1.0 | Apache-2.0 | [upstream](https://pypi.org/project/ghp-import/2.1.0/) |
@@ -39,7 +40,9 @@ The offline gate validates this versioned metadata snapshot and rejects unknown 
 | h11 | 0.16.0 | MIT | [upstream](https://pypi.org/project/h11/0.16.0/) |
 | hatchling | 1.33.0 | MIT | [upstream](https://pypi.org/project/hatchling/1.33.0/) |
 | hf-xet | 1.8.0 | Apache-2.0 | [upstream](https://pypi.org/project/hf-xet/1.8.0/) |
+| httpcore | 1.0.9 | BSD-3-Clause | [upstream](https://pypi.org/project/httpcore/1.0.9/) |
 | httpcore2 | 2.16.2 | BSD-3-Clause | [upstream](https://pypi.org/project/httpcore2/2.16.2/) |
+| httpx | 0.28.1 | BSD-3-Clause | [upstream](https://pypi.org/project/httpx/0.28.1/) |
 | httpx2 | 2.16.2 | BSD-3-Clause | [upstream](https://pypi.org/project/httpx2/2.16.2/) |
 | httpx2-jsfetch | 1.0 | BSD-3-Clause | [upstream](https://pypi.org/project/httpx2-jsfetch/1.0/) |
 | huggingface-hub | 2.4.0 | Apache-2.0 | [upstream](https://pypi.org/project/huggingface-hub/2.4.0/) |
@@ -74,6 +77,7 @@ The offline gate validates this versioned metadata snapshot and rejects unknown 
 | nodeenv | 1.12.0 | BSD-3-Clause | [upstream](https://pypi.org/project/nodeenv/1.12.0/) |
 | numba | 0.68.1 | BSD-2-Clause | [upstream](https://pypi.org/project/numba/0.68.1/) |
 | numpy | 2.5.5 | BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0 | [upstream](https://pypi.org/project/numpy/2.5.5/) |
+| opentelemetry-api | 1.45.2 | Apache-2.0 | [upstream](https://pypi.org/project/opentelemetry-api/1.45.2/) |
 | packageurl-python | 0.17.6 | MIT | [upstream](https://pypi.org/project/packageurl-python/0.17.6/) |
 | packaging | 26.3 | Apache-2.0 OR BSD-2-Clause | [upstream](https://pypi.org/project/packaging/26.3/) |
 | paginate | 0.5.7 | MIT | [upstream](https://pypi.org/project/paginate/0.5.7/) |
@@ -120,6 +124,7 @@ The offline gate validates this versioned metadata snapshot and rejects unknown 
 | sortedcontainers | 2.4.0 | Apache-2.0 | [upstream](https://pypi.org/project/sortedcontainers/2.4.0/) |
 | soundfile | 0.14.0 | BSD-3-Clause | [upstream](https://pypi.org/project/soundfile/0.14.0/) |
 | soxr | 1.1.0 | LGPL-2.1-or-later | [upstream](https://pypi.org/project/soxr/1.1.0/) |
+| starlette | 1.10.0 | BSD-3-Clause | [upstream](https://pypi.org/project/starlette/1.10.0/) |
 | sympy | 1.14.0 | BSD-3-Clause | [upstream](https://pypi.org/project/sympy/1.14.0/) |
 | threadpoolctl | 3.8.0 | BSD-3-Clause | [upstream](https://pypi.org/project/threadpoolctl/3.8.0/) |
 | tomli | 2.5.0 | MIT | [upstream](https://pypi.org/project/tomli/2.5.0/) |
@@ -136,6 +141,7 @@ The offline gate validates this versioned metadata snapshot and rejects unknown 
 | typing-inspection | 0.4.5 | MIT | [upstream](https://pypi.org/project/typing-inspection/0.4.5/) |
 | tzdata | 2026.6 | Apache-2.0 | [upstream](https://pypi.org/project/tzdata/2026.6/) |
 | urllib3 | 2.8.0 | MIT | [upstream](https://pypi.org/project/urllib3/2.8.0/) |
+| uvicorn | 0.54.0 | BSD-3-Clause | [upstream](https://pypi.org/project/uvicorn/0.54.0/) |
 | virtualenv | 21.15.8 | MIT | [upstream](https://pypi.org/project/virtualenv/21.15.8/) |
 | watchdog | 7.1.0 | Apache-2.0 | [upstream](https://pypi.org/project/watchdog/7.1.0/) |
 | wcmatch | 12.0.3 | MIT | [upstream](https://pypi.org/project/wcmatch/12.0.3/) |

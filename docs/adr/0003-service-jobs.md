@@ -1,6 +1,6 @@
 # 0003: Service facade and jobs
 
-Status: Accepted; facade implemented, HTTP jobs planned for M4.5.
+Status: Accepted; facade implemented, HTTP jobs delivered in M4.5 (see 0008).
 
 ## Context
 
@@ -12,4 +12,4 @@ Route clients through a pure Python service with progress callbacks, cooperative
 
 ## Consequences
 
-Native DSP calls finish before cancellation checkpoints. Persistent job IDs, queue state and SSE arrive in M4.5.
+Native DSP calls finish before cancellation checkpoints. Persistent job IDs, queue state and SSE arrived in M4.5 ([0008](0008-sqlite-jobs-api.md)).

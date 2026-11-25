@@ -343,6 +343,19 @@
     "license_expression": "MIT",
     "license_text_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "metadata_source": "installed METADATA",
+    "name": "fastapi",
+    "source": {
+      "registry": "https://pypi.org/simple"
+    },
+    "url": "https://pypi.org/project/fastapi/0.165.0/",
+    "version": "0.165.0"
+  },
+  {
+    "classifiers": [],
+    "license": "MIT",
+    "license_expression": "MIT",
+    "license_text_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "metadata_source": "installed METADATA",
     "name": "filelock",
     "source": {
       "registry": "https://pypi.org/simple"
@@ -442,12 +455,42 @@
     "license_expression": "BSD-3-Clause",
     "license_text_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "metadata_source": "installed METADATA",
+    "name": "httpcore",
+    "source": {
+      "registry": "https://pypi.org/simple"
+    },
+    "url": "https://pypi.org/project/httpcore/1.0.9/",
+    "version": "1.0.9"
+  },
+  {
+    "classifiers": [
+      "License :: OSI Approved :: BSD License"
+    ],
+    "license": "BSD-3-Clause",
+    "license_expression": "BSD-3-Clause",
+    "license_text_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "metadata_source": "installed METADATA",
     "name": "httpcore2",
     "source": {
       "registry": "https://pypi.org/simple"
     },
     "url": "https://pypi.org/project/httpcore2/2.16.2/",
     "version": "2.16.2"
+  },
+  {
+    "classifiers": [
+      "License :: OSI Approved :: BSD License"
+    ],
+    "license": "BSD-3-Clause",
+    "license_expression": "",
+    "license_text_sha256": "118dbcd2d5c9f9b296a9ede9fcc469c5840f7b98ad2c88461055bf2ceda38037",
+    "metadata_source": "installed METADATA",
+    "name": "httpx",
+    "source": {
+      "registry": "https://pypi.org/simple"
+    },
+    "url": "https://pypi.org/project/httpx/0.28.1/",
+    "version": "0.28.1"
   },
   {
     "classifiers": [
@@ -924,6 +967,19 @@
     },
     "url": "https://pypi.org/project/numpy/2.5.5/",
     "version": "2.5.5"
+  },
+  {
+    "classifiers": [],
+    "license": "Apache-2.0",
+    "license_expression": "Apache-2.0",
+    "license_text_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "metadata_source": "installed METADATA",
+    "name": "opentelemetry-api",
+    "source": {
+      "registry": "https://pypi.org/simple"
+    },
+    "url": "https://pypi.org/project/opentelemetry-api/1.45.2/",
+    "version": "1.45.2"
   },
   {
     "classifiers": [
@@ -1569,6 +1625,19 @@
     "version": "1.1.0"
   },
   {
+    "classifiers": [],
+    "license": "BSD-3-Clause",
+    "license_expression": "BSD-3-Clause",
+    "license_text_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "metadata_source": "installed METADATA",
+    "name": "starlette",
+    "source": {
+      "registry": "https://pypi.org/simple"
+    },
+    "url": "https://pypi.org/project/starlette/1.10.0/",
+    "version": "1.10.0"
+  },
+  {
     "classifiers": [
       "License :: OSI Approved :: BSD License"
     ],
@@ -1783,6 +1852,19 @@
     },
     "url": "https://pypi.org/project/urllib3/2.8.0/",
     "version": "2.8.0"
+  },
+  {
+    "classifiers": [],
+    "license": "BSD-3-Clause",
+    "license_expression": "BSD-3-Clause",
+    "license_text_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "metadata_source": "installed METADATA",
+    "name": "uvicorn",
+    "source": {
+      "registry": "https://pypi.org/simple"
+    },
+    "url": "https://pypi.org/project/uvicorn/0.54.0/",
+    "version": "0.54.0"
   },
   {
     "classifiers": [],

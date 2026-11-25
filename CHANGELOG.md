@@ -16,6 +16,15 @@
 
 ### Added
 
+- M4.5 service + API: `mixconsole serve` (FastAPI, 127.0.0.1 + per-run token, Host check, SSE
+  job progress, HTTP Range), 35 operations for projects, tracks, analyses, plans/MixScript
+  versions (append-only, diff), renders, library and jobs; SQLite projects (`project.sqlite` +
+  artifact folder), library index (`index.sqlite`) with `mixconsole library scan` (batch,
+  parallel, resumable), persistent RAM-bounded job queue (`jobs.sqlite`), multi-resolution
+  audiowaveform peaks (JSON + .dat), lane data and Opus previews. OpenAPI committed with
+  generated TypeScript types in `packages/schema-ts` (`scripts/gen_api_types.py`, drift check in
+  `check.sh` and CI). New `server` extra (fastapi, uvicorn), `httpx` dev dependency, settings
+  `data_dir` and `job_ram_mb`. ADR 0008.
 - M4 transition corpus (`bench/pairs.yaml`: 37 CC0/CC-BY tracks, 36 pairs, licence and
   attribution per track, licence re-verified on the track page before download) and
   `mixconsole bench corpus`: plain 6 s crossfade, trim + equal-power crossfade and MixConsole

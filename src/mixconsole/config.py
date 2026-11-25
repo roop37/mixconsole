@@ -5,9 +5,17 @@ import tomllib
 from pathlib import Path
 from typing import Any, Literal
 
-from platformdirs import user_config_path
+from platformdirs import user_config_path, user_data_path
 from pydantic import Field
 from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, SettingsConfigDict
+
+
+def data_root(override: str | Path | None = None) -> Path:
+    """Where projects, ``index.sqlite``, ``jobs.sqlite`` and the server token live."""
+    if override is not None:
+        return Path(override).expanduser()
+    configured = load_settings().data_dir
+    return configured.expanduser() if configured else user_data_path("mixconsole")
 
 
 def config_path() -> Path:
@@ -20,6 +28,12 @@ class Settings(BaseSettings):
         extra="forbid", env_prefix="MIXCONSOLE_", env_nested_delimiter="__"
     )
     cache_dir: Path | None = Field(default=None, description="Default: ~/.cache/mixconsole.")
+    data_dir: Path | None = Field(
+        default=None, description="Projects, library index, job history. Default: user data dir."
+    )
+    job_ram_mb: int | None = Field(
+        default=None, ge=256, description="RAM budget for concurrent jobs (default: 60% of RAM)."
+    )
     workers: int = Field(default_factory=lambda: min(4, os.cpu_count() or 1), ge=1, le=32)
     backends: dict[str, str] = Field(default_factory=dict)
     candidates_per_family: int = Field(default=10, ge=1, le=60)

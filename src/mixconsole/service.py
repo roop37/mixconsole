@@ -441,6 +441,9 @@ def _encode_preview(path: Path) -> Path:
     return path
 
 
+encode_preview = _encode_preview
+
+
 def _fmt(value: float | None, unit: str) -> str:
     """Render an optional measurement; None reads as "n/a" (not measured), never 0."""
     return "n/a" if value is None else f"{value:.2f} {unit}"
