@@ -75,23 +75,38 @@ def _quiet(_message: str) -> None:
 
 
 def run_accuracy(
-    *, quick: bool = False, beats: str = "librosa", progress: Progress | None = None
+    *,
+    quick: bool = False,
+    beats: str = "librosa",
+    progress: Progress | None = None,
+    tiny: bool = False,
 ) -> BenchResult:
     """Tempo sweep x SNR, meters, all 24 keys, and section cases.
 
     ``quick`` uses a coarser tempo grid (for CI smoke runs); the full run sweeps
-    70-180 BPM in 2 BPM steps at clean, 30, 20 and 10 dB SNR.
+    70-180 BPM in 2 BPM steps at clean, 30, 20 and 10 dB SNR. ``tiny`` shrinks every
+    grid to one or two cases so the fast test suite can execute every code path.
     """
     say = progress or _quiet
-    step = 10 if quick else 2
-    snrs: list[float | None] = [None, 20] if quick else [None, 30, 20, 10]
+    step = 120 if tiny else 10 if quick else 2
+    snrs: list[float | None] = [None] if tiny else [None, 20] if quick else [None, 30, 20, 10]
+    meter_bpms = (90,) if tiny else (90, 110, 150)
+    notes = NOTES[:1] if tiny else NOTES
+    ramp_ends = (95,) if tiny else (95, 155)
+    phrase_cases = ((8, 2),) if tiny else ((4, 1), (8, 2), (16, 3))
+    compression = ((30,), (2,)) if tiny else ((30, 20, 10), (2, 4))
+    seeds = range(1) if tiny else range(3)
+    condition_bpms = (110,) if tiny else (70, 90, 110, 128, 150, 180)
+    bars = 8 if tiny else 16
     metrics: dict[str, float] = {}
     with tempfile.TemporaryDirectory(prefix="mixconsole-acc-") as tmp:
         root = Path(tmp)
 
         def run(audio: np.ndarray, name: str):
             return analyze(
-                write_audio(root / f"{name}.wav", audio), backends={"beats": beats}, use_cache=False
+                write_audio(root / f"{name}.wav", audio),
+                backends={"beats": beats, "vocals": "heuristic"},
+                use_cache=False,
             )
 
         for snr in snrs:
@@ -103,7 +118,7 @@ def run_accuracy(
             for i, bpm in enumerate(range(70, 181, step)):
                 say(f"accuracy: tempo {bpm} BPM {label}")
                 audio, truth = generate_track(
-                    bpm=bpm, bars=16, key=NOTES[i % 12] + " minor", seed=i
+                    bpm=bpm, bars=bars, key=NOTES[i % 12] + " minor", seed=i
                 )
                 result = run(add_noise(audio, snr, seed=i), f"t{bpm}-{label}")
                 acc1.append(tempo_acc1(result.global_bpm, bpm))
@@ -117,15 +132,15 @@ def run_accuracy(
             metrics[f"downbeat_f_mean_{label}"] = statistics.fmean(down_f)
 
         meters: list[bool] = []
-        for bpm in (90, 110, 150):
+        for bpm in meter_bpms:
             say(f"accuracy: 3/4 at {bpm} BPM")
-            audio, _ = generate_track(bpm=bpm, bars=16, time_signature=(3, 4), seed=bpm)
+            audio, _ = generate_track(bpm=bpm, bars=bars, time_signature=(3, 4), seed=bpm)
             meters.append(run(add_noise(audio, 20, seed=bpm), f"w{bpm}").meter == 3)
         metrics["meter_3_4_rate_snr20"] = float(np.mean(meters))
 
         scores: list[float] = []
         for mode in ("major", "minor"):
-            for tonic, note in enumerate(NOTES):
+            for tonic, note in enumerate(notes):
                 say(f"accuracy: key {note} {mode}")
                 audio, _ = generate_track(bpm=120, bars=8, key=f"{note} {mode}", seed=tonic)
                 key = run(add_noise(audio, 20, seed=tonic), f"k{tonic}{mode}").key
@@ -134,15 +149,15 @@ def run_accuracy(
         metrics["key_exact_rate_snr20"] = float(np.mean([s == 1.0 for s in scores]))
 
         say("accuracy: ramps, phrases, compression and loudness")
-        for end in (95, 155):
-            audio, truth = generate_track(bpm=125, end_bpm=end, bars=16, seed=9)
+        for end in ramp_ends:
+            audio, truth = generate_track(bpm=125, end_bpm=end, bars=bars, seed=9)
             result = run(audio, f"ramp-{end}")
             metrics[f"ramp_125_{end}_beat_f"] = beat_f_measure(result.beats, truth["beat_times"])
             metrics[f"ramp_125_{end}_downbeat_f"] = beat_f_measure(
                 result.downbeats, truth["downbeats"]
             )
         exact: list[bool] = []
-        for length, offset in ((4, 1), (8, 2), (16, 3)):
+        for length, offset in phrase_cases:
             audio, truth = generate_track(
                 bars=36, phrase_bars=length, phrase_offset_bars=offset, seed=17
             )
@@ -151,9 +166,9 @@ def run_accuracy(
         metrics["phrase_exact_rate"] = float(np.mean(exact))
         meter = pyloudnorm.Meter(44100)
         lufs_errors: list[float] = []
-        for snr in (30, 20, 10):
-            for drive in (2, 4):
-                audio, truth = generate_track(bpm=124, bars=16, seed=13)
+        for snr in compression[0]:
+            for drive in compression[1]:
+                audio, truth = generate_track(bpm=124, bars=bars, seed=13)
                 degraded = np.tanh(drive * add_noise(audio, snr, 13)).astype(np.float32)
                 result = run(degraded, f"compression-{drive}-{snr}")
                 metrics[f"compressed_drive{drive}_snr{snr}_beat_f"] = beat_f_measure(
@@ -170,7 +185,7 @@ def run_accuracy(
 
         say("accuracy: sections")
         homogeneous: list[bool] = []
-        for seed in range(3):
+        for seed in seeds:
             audio, _ = generate_track(bpm=128, bars=32, seed=seed)
             homogeneous.append(len(run(add_noise(audio, 20, seed), f"h{seed}").sections) == 1)
         metrics["sections_homogeneous_single_rate_snr20"] = float(np.mean(homogeneous))
@@ -191,7 +206,7 @@ def run_accuracy(
             beat_scores: list[float] = []
             section_scores: list[bool] = []
             confidences: list[float] = []
-            for bpm in (70, 90, 110, 128, 150, 180):
+            for bpm in condition_bpms:
                 say(f"accuracy: {condition} {bpm} BPM")
                 percussion = (
                     "sparse"
@@ -202,7 +217,7 @@ def run_accuracy(
                 )
                 audio, truth = generate_track(
                     bpm=bpm,
-                    bars=16,
+                    bars=bars,
                     seed=bpm,
                     percussion=percussion,
                     timing_jitter_ms=10 if condition == "swing" else 0,
@@ -233,8 +248,8 @@ def run_accuracy(
     return new_result(
         "accuracy",
         metrics,
-        backends=registry.versions(registry.selection({"beats": beats})),
-        parameters={"tempo_step_bpm": step, "quick": int(quick), "beats": beats},
+        backends=registry.versions(registry.selection({"beats": beats, "vocals": "heuristic"})),
+        parameters={"tempo_step_bpm": step, "quick": int(quick), "beats": beats, "tiny": int(tiny)},
         notes=[
             "Synthetic signals with exact ground truth; not evidence of real-music accuracy.",
             "White/pink noise SNR is relative to track RMS.",

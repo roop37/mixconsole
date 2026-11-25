@@ -3,7 +3,7 @@
 The open, inspectable AutoMix for your own files. A local-first engine for automatic
 DJ transitions, with editable, reproducible plans that explain each decision.
 
-**Status: pre-alpha — M2 two-song mixing.** Analyze local tracks, rank transition
+**Status: pre-alpha — M3 stems and vocals.** Analyze local tracks, rank transition
 candidates, render a MixScript v1.1 and inspect a local HTML report. Benchmarks:
 [bench/results/LATEST.md](bench/results/LATEST.md). The console UI is a later milestone.
 
@@ -32,7 +32,10 @@ on your machine; the core does not need torch, a GPU, or downloaded model weight
 The optional `neural` extra adds Beat This! and torch; `all` includes `neural`.
 The uv project routes Linux/Windows torch to CPU wheels, excluding NVIDIA EULA
 packages. This source routing does not apply to pip installs of neural extras.
-The `stems` and `ui` extras remain placeholders.
+The optional `stems` extra adds Demucs (MIT) for the stem families (Apple Silicon, Linux
+and Windows; not Intel macOS). Fetch the checksum-pinned `htdemucs` weights once with
+`uv sync --extra stems && uv run mixconsole models fetch htdemucs`; they live in the
+ignored cache, never in the repository. The `ui` extra remains a placeholder.
 
 <!-- test -->
 ```python
@@ -72,8 +75,24 @@ six-second linear crossfade baseline. No benchmark audio is committed.
 
 The scorer is a heuristic, and verification thresholds catch measured seam issues;
 these checks are not a listening test or a claim of superiority to another player.
-Time-stretching uses the MIT-licensed Signalsmith binding in the core. Stems and
-vocal separation remain M3 work, so those two family templates are unavailable.
+Time-stretching uses the MIT-licensed Signalsmith binding in the core.
+
+### Stems and vocals (M3)
+
+With the `stems` extra and weights present (`MIXCONSOLE_STEMS=auto`, the default; `off`
+disables, `on` requires them) analysis separates only the last and first 60 s of each
+track's music with Demucs `htdemucs` (CPU or Apple MPS, cached per PCM hash, window and
+model). Vocal activity per bar and per beat plus lyric gaps (>= 300 ms) are stored in
+`TrackAnalysis.vocal_activity`; without the extra a low-confidence spectral heuristic fills
+the same field and the stem families report why they are not applicable. Two families use
+the stems: `stem_handoff` (drums, bass, other and vocals hand over at different bars; a
+`drums_only` variant for key clashes lets only the drums overlap) and
+`vocal_over_instrumental` (A's vocals over B's vocal-free intro when keys are compatible).
+Planning never lets two lead vocals sound together for more than a beat, never overlaps
+two basslines for more than a bar, and leaves A's vocal only at a lyric gap; verification
+re-measures vocal and bass overlap on the rendered stems. Stem separation is imperfect:
+Demucs leakage can be audible and the residual is folded into the `other` stem so that
+stems re-sum to the original.
 
 ## Analysis contract and backends
 

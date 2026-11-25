@@ -7,5 +7,6 @@ uv run ruff format --check .
 uv run pyright
 uv run python scripts/gen_schema.py --check
 uv run python scripts/third_party.py --check
-# Fast suite with an enforced coverage floor (R2 restored it; raised to 87 with renderer/constraint tests; M3 raises to 91).
-uv run pytest -m "not slow" -q --cov-fail-under=87
+# Fast suite with an enforced coverage floor (R2 restored it at 85; M3 raises it to 91).
+# xdist keeps the run well under 60 s on an M4; slow/model tests: uv run pytest -m slow --no-cov
+uv run pytest -m "not slow" -q -n 4 --dist worksteal --cov-fail-under=91

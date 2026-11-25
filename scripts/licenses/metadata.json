@@ -28,6 +28,19 @@
     "version": "0.8.0"
   },
   {
+    "classifiers": [],
+    "license": "MIT",
+    "license_expression": "MIT",
+    "license_text_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "metadata_source": "installed METADATA",
+    "name": "anyio",
+    "source": {
+      "registry": "https://pypi.org/simple"
+    },
+    "url": "https://pypi.org/project/anyio/4.16.0/",
+    "version": "4.16.0"
+  },
+  {
     "classifiers": [
       "License :: OSI Approved :: BSD License"
     ],
@@ -266,6 +279,21 @@
   },
   {
     "classifiers": [
+      "License :: OSI Approved :: MIT License"
+    ],
+    "license": "MIT",
+    "license_expression": "",
+    "license_text_sha256": "abb2896dc3c2a9402f901b88d5035cf0a83d5cf7c17e73642cdf562b0b9d3bc5",
+    "metadata_source": "installed METADATA",
+    "name": "demucs",
+    "source": {
+      "registry": "https://pypi.org/simple"
+    },
+    "url": "https://pypi.org/project/demucs/4.1.0/",
+    "version": "4.1.0"
+  },
+  {
+    "classifiers": [
       "License :: OSI Approved :: Python Software Foundation License"
     ],
     "license": "PSF-2.0",
@@ -293,6 +321,21 @@
     },
     "url": "https://pypi.org/project/einops/0.8.2/",
     "version": "0.8.2"
+  },
+  {
+    "classifiers": [
+      "License :: OSI Approved :: MIT License"
+    ],
+    "license": "MIT",
+    "license_expression": "MIT",
+    "license_text_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "metadata_source": "installed METADATA",
+    "name": "execnet",
+    "source": {
+      "registry": "https://pypi.org/simple"
+    },
+    "url": "https://pypi.org/project/execnet/2.1.2/",
+    "version": "2.1.2"
   },
   {
     "classifiers": [],
@@ -349,6 +392,21 @@
     "version": "2.4.1"
   },
   {
+    "classifiers": [
+      "License :: OSI Approved :: MIT License"
+    ],
+    "license": "MIT",
+    "license_expression": "",
+    "license_text_sha256": "e5dcffe836b6ec8a58e492419b550e65fb8cbdc308503979e5dacb33ac7ea3b7",
+    "metadata_source": "installed METADATA",
+    "name": "h11",
+    "source": {
+      "registry": "https://pypi.org/simple"
+    },
+    "url": "https://pypi.org/project/h11/0.16.0/",
+    "version": "0.16.0"
+  },
+  {
     "classifiers": [],
     "license": "MIT",
     "license_expression": "MIT",
@@ -360,6 +418,81 @@
     },
     "url": "https://pypi.org/project/hatchling/1.33.0/",
     "version": "1.33.0"
+  },
+  {
+    "classifiers": [
+      "License :: OSI Approved :: Apache Software License"
+    ],
+    "license": "Apache-2.0",
+    "license_expression": "Apache-2.0",
+    "license_text_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "metadata_source": "installed METADATA",
+    "name": "hf-xet",
+    "source": {
+      "registry": "https://pypi.org/simple"
+    },
+    "url": "https://pypi.org/project/hf-xet/1.8.0/",
+    "version": "1.8.0"
+  },
+  {
+    "classifiers": [
+      "License :: OSI Approved :: BSD License"
+    ],
+    "license": "BSD-3-Clause",
+    "license_expression": "BSD-3-Clause",
+    "license_text_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "metadata_source": "installed METADATA",
+    "name": "httpcore2",
+    "source": {
+      "registry": "https://pypi.org/simple"
+    },
+    "url": "https://pypi.org/project/httpcore2/2.16.2/",
+    "version": "2.16.2"
+  },
+  {
+    "classifiers": [
+      "License :: OSI Approved :: BSD License"
+    ],
+    "license": "BSD-3-Clause",
+    "license_expression": "BSD-3-Clause",
+    "license_text_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "metadata_source": "installed METADATA",
+    "name": "httpx2",
+    "source": {
+      "registry": "https://pypi.org/simple"
+    },
+    "url": "https://pypi.org/project/httpx2/2.16.2/",
+    "version": "2.16.2"
+  },
+  {
+    "classifiers": [
+      "License :: OSI Approved :: BSD License"
+    ],
+    "license": "BSD-3-Clause",
+    "license_expression": "BSD-3-Clause",
+    "license_text_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "metadata_source": "https://pypi.org/pypi/httpx2-jsfetch/1.0/json",
+    "name": "httpx2-jsfetch",
+    "source": {
+      "registry": "https://pypi.org/simple"
+    },
+    "url": "https://pypi.org/project/httpx2-jsfetch/1.0/",
+    "version": "1.0"
+  },
+  {
+    "classifiers": [
+      "License :: OSI Approved :: Apache Software License"
+    ],
+    "license": "Apache-2.0",
+    "license_expression": "",
+    "license_text_sha256": "2af71558e438db0b73a20beab92dc278a94e1bbe974c00c1a33e3ab62d53a608",
+    "metadata_source": "installed METADATA",
+    "name": "huggingface-hub",
+    "source": {
+      "registry": "https://pypi.org/simple"
+    },
+    "url": "https://pypi.org/project/huggingface-hub/2.4.0/",
+    "version": "2.4.0"
   },
   {
     "classifiers": [],
@@ -440,6 +573,21 @@
     },
     "url": "https://pypi.org/project/joblib/1.6.0/",
     "version": "1.6.0"
+  },
+  {
+    "classifiers": [
+      "License :: OSI Approved :: MIT License"
+    ],
+    "license": "MIT",
+    "license_expression": "",
+    "license_text_sha256": "abb2896dc3c2a9402f901b88d5035cf0a83d5cf7c17e73642cdf562b0b9d3bc5",
+    "metadata_source": "installed METADATA",
+    "name": "julius",
+    "source": {
+      "registry": "https://pypi.org/simple"
+    },
+    "url": "https://pypi.org/project/julius/0.2.8/",
+    "version": "0.2.8"
   },
   {
     "classifiers": [],
@@ -1140,6 +1288,19 @@
   },
   {
     "classifiers": [],
+    "license": "MIT",
+    "license_expression": "MIT",
+    "license_text_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "metadata_source": "installed METADATA",
+    "name": "pytest-xdist",
+    "source": {
+      "registry": "https://pypi.org/simple"
+    },
+    "url": "https://pypi.org/project/pytest-xdist/3.8.0/",
+    "version": "3.8.0"
+  },
+  {
+    "classifiers": [],
     "license": "BSD-3-Clause",
     "license_expression": "BSD-3-Clause",
     "license_text_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -1292,6 +1453,21 @@
     },
     "url": "https://pypi.org/project/ruff/0.17.5/",
     "version": "0.17.5"
+  },
+  {
+    "classifiers": [
+      "License :: OSI Approved :: Apache Software License"
+    ],
+    "license": "Apache-2.0",
+    "license_expression": "",
+    "license_text_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "metadata_source": "installed METADATA",
+    "name": "safetensors",
+    "source": {
+      "registry": "https://pypi.org/simple"
+    },
+    "url": "https://pypi.org/project/safetensors/0.8.0/",
+    "version": "0.8.0"
   },
   {
     "classifiers": [],
@@ -1503,6 +1679,19 @@
     "version": "2.11.1"
   },
   {
+    "classifiers": [],
+    "license": "MPL-2.0 AND MIT",
+    "license_expression": "",
+    "license_text_sha256": "497716e0cebf8fb1944bbac349083f8ba656e10320c3f9811a955fc8786d0cc1",
+    "metadata_source": "installed METADATA",
+    "name": "tqdm",
+    "source": {
+      "registry": "https://pypi.org/simple"
+    },
+    "url": "https://pypi.org/project/tqdm/4.70.1/",
+    "version": "4.70.1"
+  },
+  {
     "classifiers": [
       "License :: OSI Approved :: Apache Software License"
     ],
@@ -1516,6 +1705,19 @@
     },
     "url": "https://pypi.org/project/trove-classifiers/2026.9.21.13/",
     "version": "2026.9.21.13"
+  },
+  {
+    "classifiers": [],
+    "license": "MIT",
+    "license_expression": "MIT",
+    "license_text_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "metadata_source": "installed METADATA",
+    "name": "truststore",
+    "source": {
+      "registry": "https://pypi.org/simple"
+    },
+    "url": "https://pypi.org/project/truststore/0.10.5/",
+    "version": "0.10.5"
   },
   {
     "classifiers": [],

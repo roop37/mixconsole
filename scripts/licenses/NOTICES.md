@@ -41,6 +41,19 @@ metadata for absent extras; CPU torch uses its upstream release metadata.
   `8c328b45f59d8dd3dff219253ff6a8d6482be57d0133a29140e2febbf8eb8331`.
   No weights are bundled. Users can override the checkpoint path; its hash enters
   analysis provenance. [License](https://github.com/CPJKU/beat_this#license).
+- **Demucs htdemucs** (stems extra, M3): Demucs code (`demucs` 4.1.0) and the
+  published `htdemucs` weights (signature `955717e8`) are MIT-licensed by Meta
+  Platforms ([LICENSE](https://github.com/facebookresearch/demucs/blob/main/LICENSE);
+  the README states that the code and models are released under MIT). The optional
+  model manager fetches `955717e8-8726e21a.th` from
+  [dl.fbaipublicfiles.com](https://dl.fbaipublicfiles.com/demucs/hybrid_transformer/955717e8-8726e21a.th)
+  into the ignored MixConsole cache and verifies SHA-256
+  `8726e21a993978c7ba086d3872e7608d7d5bfca646ca4aca459ffda844faa8b4`. No weights
+  are bundled. The training data (MUSDB18-HQ plus 800 licensed songs) is not
+  redistributed. Only `demucs.apply`/`demucs.pretrained` are imported;
+  demucs' I/O helpers `lameenc` (LGPL-3.0, MP3 encoder) and `sphn` (no licence
+  metadata) are excluded from the lock via uv `override-dependencies` and never
+  loaded. Intel macOS is not supported for stems (demucs pins torch<2.3 there).
 - **All-In-One**: reserved stub, never executed/installed by an extra. Upstream
   code MIT; NATTEN/madmom constraints require a separate review before enabling.
   [Upstream](https://github.com/mir-aidj/all-in-one).

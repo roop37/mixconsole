@@ -1,9 +1,10 @@
 """Compile a v1.1 transition into a deterministic stereo PCM handoff."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import numpy as np
 
+from mixconsole.analysis.backends.stems import STEM_NAMES, StemSet, compensate
 from mixconsole.io import SAMPLE_RATE, Audio
 from mixconsole.mixscript.models import MixScript
 from mixconsole.render.eq import bands, isolate_mid_high
@@ -21,14 +22,25 @@ class RenderInspection:
     contribution_a: Audio | None = None
     contribution_b: Audio | None = None
     beat_warp: list[list[int]] | None = None
+    # Post-automation stem signals, keyed "a:vocals", "b:bass", ... (stem families only).
+    stem_contributions: dict[str, Audio] = field(default_factory=dict[str, Audio])
 
 
 def _frame(seconds: float, maximum: int) -> int:
     return max(0, min(maximum, round(seconds * SAMPLE_RATE)))
 
 
+STEM_FAMILIES = ("stem_handoff", "vocal_over_instrumental")
+
+
 def family_is_matched(family: str, strategy: str) -> bool:
-    return family == "beatmatch_blend" and strategy != "no_sync"
+    return (family == "beatmatch_blend" or family in STEM_FAMILIES) and strategy != "no_sync"
+
+
+def _fit(audio: Audio, frames: int) -> Audio:
+    if len(audio) == frames:
+        return audio
+    return np.pad(audio, ((0, frames - len(audio)), (0, 0)))
 
 
 def render_transition(
@@ -37,9 +49,16 @@ def render_transition(
     script: MixScript,
     *,
     inspection: RenderInspection | None = None,
+    stems: tuple[StemSet, StemSet] | None = None,
 ) -> Audio:
-    """Untouched source regions are copied by slice before the seam and after it."""
+    """Untouched source regions are copied by slice before the seam and after it.
+
+    ``stems`` are the separated windows of A and B in the coordinates of ``a``/``b``;
+    they are required for the stem families and used only inside the transition.
+    """
     transition = script.transitions[0]
+    if transition.family in STEM_FAMILIES and stems is None:
+        raise ValueError(f"{transition.family} needs separated stems (stems extra)")
     xa, xb = _frame(transition.exit.seconds, len(a)), _frame(transition.entry.seconds, len(b))
     bpm = transition.tempo.tempo_map[0].bpm if transition.tempo.tempo_map else 120.0
     frames = round(transition.length_bars * transition.beats_per_bar * 60 / bpm * SAMPLE_RATE)
@@ -62,6 +81,7 @@ def render_transition(
     if len(source_a) != frames:
         source_a = np.pad(source_a, ((0, frames - len(source_a)), (0, 0)))
     consumed_b = len(source_b)
+    source_b_raw = source_b
     if inspection is not None:
         inspection.source_b = source_b.copy()
         inspection.beat_warp = beat_warp
@@ -76,7 +96,11 @@ def render_transition(
             db = float(effect.params.get("db", 0.0))
             source_b = source_b * np.float32(10 ** (db / 20))
     family = transition.family
-    lanes = {lane.target.track: lane for lane in transition.automation if lane.parameter == "gain"}
+    lanes = {
+        lane.target.track: lane
+        for lane in transition.automation
+        if lane.parameter == "gain" and lane.target.kind == "track"
+    }
     fade_a = (
         lane_curve(lanes[transition.from_track], frames, bpm)
         if transition.from_track in lanes
@@ -94,7 +118,39 @@ def render_transition(
     if correlation > 0.9:
         fade_a = curve(frames, "linear")
         fade_b = curve(frames, "linear", incoming=True)
-    if family == "beatmatch_blend":
+    if family in STEM_FAMILIES:
+        assert stems is not None
+        gain_b = np.float32(1.0)
+        for effect in transition.effects:
+            if effect.name == "gain_match" and effect.target.track == transition.to_track:
+                gain_b = np.float32(10 ** (float(effect.params.get("db", 0.0)) / 20))
+        stem_lanes = {
+            (lane.target.track, lane.target.stem): lane_curve(lane, frames, bpm)
+            for lane in transition.automation
+            if lane.parameter == "gain" and lane.target.kind == "stem"
+        }
+        a_set, b_set = compensate(stems[0]), compensate(stems[1])
+        a_stems = a_set.slice(xa, xa + frames)
+        b_stems = b_set.slice(xb, xb + len(source_b_raw))
+        contribution_a = np.zeros((frames, 2), dtype=np.float32)
+        contribution_b = np.zeros((frames, 2), dtype=np.float32)
+        unity = np.ones(frames, dtype=np.float32)
+        for name in STEM_NAMES:
+            part_a = _fit(a_stems[name], frames)
+            part_b = b_stems[name]
+            part_b = (
+                stretch_piecewise(part_b, beat_warp) if beat_warp else stretch(part_b, frames)
+            ) * gain_b
+            ga = stem_lanes.get((transition.from_track, name), unity)
+            gb = stem_lanes.get((transition.to_track, name), unity)
+            ca, cb = part_a * ga[:, None], part_b * gb[:, None]
+            contribution_a += ca
+            contribution_b += cb
+            if inspection is not None:
+                inspection.stem_contributions[f"a:{name}"] = ca
+                inspection.stem_contributions[f"b:{name}"] = cb
+        mixed = contribution_a + contribution_b
+    elif family == "beatmatch_blend":
         al, am, ah = bands(source_a)
         bl, bm, bh = bands(source_b)
         swap_effect = next(

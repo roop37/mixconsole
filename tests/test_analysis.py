@@ -78,7 +78,8 @@ def test_tempo_beats_downbeats_and_phrases(tracks, bpm):
     assert len(result.bars) == 16
     assert result.arrays["bar_energy"].shape == (16, 5)
     assert len(result.arrays["short_term_lufs"]) == int(np.ceil(result.duration / 0.1))
-    assert result.vocal_activity is None
+    assert result.vocal_activity is not None
+    assert result.vocal_activity.source == "heuristic"
 
 
 def test_schema_bytes(tracks):

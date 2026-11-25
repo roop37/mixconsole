@@ -10,6 +10,8 @@ from mixconsole.analysis.backends.cues import EdgeCueBackend
 from mixconsole.analysis.backends.key import ProfileKeyBackend
 from mixconsole.analysis.backends.loudness import PyloudnormBackend
 from mixconsole.analysis.backends.sections import AllInOneBackend, NoveltySectionBackend
+from mixconsole.analysis.backends.stems import available as stems_available
+from mixconsole.analysis.backends.vocals import HeuristicVocalBackend, StemVocalBackend
 from mixconsole.analysis.interfaces import (
     Backend,
     BeatBackend,
@@ -17,8 +19,10 @@ from mixconsole.analysis.interfaces import (
     KeyBackend,
     LoudnessBackend,
     SectionBackend,
+    VocalBackend,
 )
-from mixconsole.analysis.model_manager import checkpoint_path
+from mixconsole.analysis.model_manager import HTDEMUCS_SHA256, checkpoint_path
+from mixconsole.config import load_settings
 from mixconsole.io import file_sha256
 from mixconsole.progress import Cancelled
 
@@ -30,13 +34,16 @@ SECTIONS: dict[str, SectionBackend] = {
     b.name: b for b in (NoveltySectionBackend(), AllInOneBackend())
 }
 CUES: dict[str, CueBackend] = {"edges": EdgeCueBackend()}
+VOCALS: dict[str, VocalBackend] = {b.name: b for b in (HeuristicVocalBackend(), StemVocalBackend())}
 DEFAULTS = {
     "beats": "librosa",
     "key": "profiles",
     "loudness": "pyloudnorm",
     "sections": "novelty",
     "cues": "edges",
+    "vocals": "auto",  # stems when the extra + weights are present, else the heuristic
 }
+FALLBACKS = {"vocals": "heuristic"}
 
 
 PLUGIN_GROUP = "mixconsole.backends"
@@ -47,6 +54,7 @@ _KINDS: dict[str, dict[str, Backend]] = {
     "loudness": LOUDNESS,  # type: ignore[dict-item]
     "sections": SECTIONS,  # type: ignore[dict-item]
     "cues": CUES,  # type: ignore[dict-item]
+    "vocals": VOCALS,  # type: ignore[dict-item]
 }
 _plugins_loaded = False
 
@@ -97,10 +105,20 @@ def selection(backends: Mapping[str, str] | None) -> dict[str, str]:
         "loudness": LOUDNESS,
         "sections": SECTIONS,
         "cues": CUES,
+        "vocals": VOCALS,
     }
     for kind, name in names.items():
+        if kind == "vocals" and name == "auto":
+            continue
         if kind not in registries or name not in registries[kind]:
             raise ValueError(f"unknown backend {kind}={name}")
+    if names["vocals"] == "auto":
+        names["vocals"] = (
+            "stems" if load_settings().stems != "off" and stems_available() else "heuristic"
+        )
+    elif names["vocals"] == "stems" and not stems_available():
+        logger.warning("stems unavailable (demucs extra or htdemucs weights); using heuristic")
+        names["vocals"] = "heuristic"
     if names["beats"] == "beat_this" and (
         importlib.util.find_spec("beat_this") is None or not checkpoint_path().is_file()
     ):
@@ -119,10 +137,11 @@ def versions(names: Mapping[str, str]) -> dict[str, str]:
         "loudness": LOUDNESS,
         "sections": SECTIONS,
         "cues": CUES,
+        "vocals": VOCALS,
     }
     result = {kind: f"{name}@{registries[kind][name].version}" for kind, name in names.items()}
     # Bump when orchestration changes outputs (tempo map, sections, grid fill).
-    result["pipeline"] = "analysis@3"
+    result["pipeline"] = "analysis@4"
     for package in ("numpy", "scipy", "librosa", "pyloudnorm", "soundfile", "numba") + (
         ("beat-this", "torch", "torchaudio") if names["beats"] == "beat_this" else ()
     ):
@@ -130,6 +149,13 @@ def versions(names: Mapping[str, str]) -> dict[str, str]:
             result[package] = version(package)
         except PackageNotFoundError:
             result[package] = "unavailable"
+    if names["vocals"] == "stems":
+        result["stems_checkpoint"] = HTDEMUCS_SHA256
+        for package in ("demucs", "torch"):
+            try:
+                result[package] = version(package)
+            except PackageNotFoundError:
+                result[package] = "unavailable"
     if names["beats"] == "beat_this":
         result["beat_this_checkpoint"] = file_sha256(checkpoint_path())
     return result
@@ -141,8 +167,9 @@ def run[T](kind: str, names: dict[str, str], call: Callable[[str], T]) -> T:
     except Cancelled:
         raise
     except Exception as exc:
-        if names[kind] == DEFAULTS[kind]:
+        fallback = FALLBACKS.get(kind, DEFAULTS[kind])
+        if names[kind] == fallback:
             raise
-        logger.warning("%s failed (%s); falling back to %s", names[kind], exc, DEFAULTS[kind])
-        names[kind] = DEFAULTS[kind]
+        logger.warning("%s failed (%s); falling back to %s", names[kind], exc, fallback)
+        names[kind] = fallback
         return call(names[kind])

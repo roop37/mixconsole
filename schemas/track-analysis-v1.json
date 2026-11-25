@@ -301,6 +301,87 @@
       "title": "Section",
       "type": "object"
     },
+    "Span": {
+      "additionalProperties": false,
+      "description": "Half-open [start, end) interval in seconds.",
+      "properties": {
+        "end": {
+          "minimum": 0,
+          "title": "End",
+          "type": "number"
+        },
+        "start": {
+          "minimum": 0,
+          "title": "Start",
+          "type": "number"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ],
+      "title": "Span",
+      "type": "object"
+    },
+    "StemWindow": {
+      "additionalProperties": false,
+      "properties": {
+        "end": {
+          "minimum": 0,
+          "title": "End",
+          "type": "number"
+        },
+        "role": {
+          "enum": [
+            "exit",
+            "entry"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "start": {
+          "minimum": 0,
+          "title": "Start",
+          "type": "number"
+        }
+      },
+      "required": [
+        "role",
+        "start",
+        "end"
+      ],
+      "title": "StemWindow",
+      "type": "object"
+    },
+    "StemsInfo": {
+      "additionalProperties": false,
+      "description": "Separated windows (exit window of the outgoing role, entry window of the incoming role).\n\nThe stems themselves live in the stem cache keyed by (pcm_sha256, window, model).",
+      "properties": {
+        "checkpoint_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Checkpoint Sha256",
+          "type": "string"
+        },
+        "model": {
+          "title": "Model",
+          "type": "string"
+        },
+        "windows": {
+          "items": {
+            "$ref": "#/$defs/StemWindow"
+          },
+          "title": "Windows",
+          "type": "array"
+        }
+      },
+      "required": [
+        "model",
+        "checkpoint_sha256",
+        "windows"
+      ],
+      "title": "StemsInfo",
+      "type": "object"
+    },
     "TempoSegment": {
       "additionalProperties": false,
       "properties": {
@@ -326,6 +407,75 @@
         "bpm"
       ],
       "title": "TempoSegment",
+      "type": "object"
+    },
+    "VocalActivity": {
+      "additionalProperties": false,
+      "description": "Lead-vocal presence. ``per_bar``/``per_beat`` are the active fraction of each bar/beat.\n\n``source`` is \"stem\" when every value comes from a separated vocal stem and \"heuristic\"\nwhen any part comes from the low-confidence spectral estimate; ``stem_regions`` lists\nthe stem-derived windows. ``gaps`` are vocal-free spans of at least 300 ms.",
+      "properties": {
+        "confidence": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "gaps": {
+          "items": {
+            "$ref": "#/$defs/Span"
+          },
+          "title": "Gaps",
+          "type": "array"
+        },
+        "per_bar": {
+          "items": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "title": "Per Bar",
+          "type": "array"
+        },
+        "per_beat": {
+          "items": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "title": "Per Beat",
+          "type": "array"
+        },
+        "source": {
+          "enum": [
+            "stem",
+            "heuristic"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "spans": {
+          "items": {
+            "$ref": "#/$defs/Span"
+          },
+          "title": "Spans",
+          "type": "array"
+        },
+        "stem_regions": {
+          "items": {
+            "$ref": "#/$defs/Span"
+          },
+          "title": "Stem Regions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "source",
+        "confidence",
+        "spans",
+        "gaps",
+        "per_bar",
+        "per_beat"
+      ],
+      "title": "VocalActivity",
       "type": "object"
     }
   },
@@ -458,6 +608,17 @@
       "title": "Sections",
       "type": "array"
     },
+    "stems": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/StemsInfo"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
     "tempo_map": {
       "items": {
         "$ref": "#/$defs/TempoSegment"
@@ -472,9 +633,15 @@
       "type": "string"
     },
     "vocal_activity": {
-      "default": null,
-      "title": "Vocal Activity",
-      "type": "null"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/VocalActivity"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     }
   },
   "required": [

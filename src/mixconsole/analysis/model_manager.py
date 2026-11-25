@@ -39,3 +39,51 @@ def fetch_beat_this() -> Path:
     finally:
         Path(temporary).unlink(missing_ok=True)
     return destination
+
+
+HTDEMUCS_NAME = "htdemucs"
+HTDEMUCS_FILE = "955717e8-8726e21a.th"
+HTDEMUCS_URL = f"https://dl.fbaipublicfiles.com/demucs/hybrid_transformer/{HTDEMUCS_FILE}"
+HTDEMUCS_SHA256 = "8726e21a993978c7ba086d3872e7608d7d5bfca646ca4aca459ffda844faa8b4"
+HTDEMUCS_VERSION = f"htdemucs@{HTDEMUCS_FILE.removesuffix('.th')}"
+
+
+def htdemucs_dir() -> Path:
+    override = os.environ.get("MIXCONSOLE_HTDEMUCS_DIR")
+    return Path(override) if override else cache_root() / "models" / "htdemucs"
+
+
+def htdemucs_path() -> Path:
+    """Path of the pinned checkpoint (the file name embeds the first 8 hex of its SHA-256)."""
+    return htdemucs_dir() / HTDEMUCS_FILE
+
+
+def _sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        while chunk := stream.read(1024 * 1024):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def fetch_htdemucs() -> Path:
+    """Download the official MIT htdemucs checkpoint once and reject altered bytes."""
+    destination = htdemucs_path()
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    if destination.is_file():
+        if _sha256_file(destination) == HTDEMUCS_SHA256:
+            return destination
+        raise ValueError(f"checkpoint hash mismatch: {destination}")
+    fd, temporary = tempfile.mkstemp(prefix=".htdemucs-", dir=destination.parent)
+    try:
+        digest = hashlib.sha256()
+        with os.fdopen(fd, "wb") as output, urlopen(HTDEMUCS_URL, timeout=60) as source:
+            while chunk := source.read(1024 * 1024):
+                digest.update(chunk)
+                output.write(chunk)
+        if digest.hexdigest() != HTDEMUCS_SHA256:
+            raise ValueError("downloaded htdemucs checkpoint hash mismatch")
+        os.replace(temporary, destination)
+    finally:
+        Path(temporary).unlink(missing_ok=True)
+    return destination

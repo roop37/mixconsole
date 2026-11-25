@@ -3,7 +3,7 @@
 import os
 import tomllib
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from platformdirs import user_config_path
 from pydantic import Field
@@ -29,6 +29,12 @@ class Settings(BaseSettings):
     max_true_peak_dbtp: float = Field(default=-1.0, le=0)
     max_low_overlap_bars: float = Field(default=1.0, ge=0)
     max_stretch: float = Field(default=0.08, gt=0, le=0.25)
+    max_vocal_overlap_beats: float = Field(default=1.0, ge=0)
+    stems: Literal["auto", "on", "off"] = Field(
+        default="auto",
+        description="auto: separate stems when the stems extra and htdemucs weights are present.",
+    )
+    stems_device: Literal["auto", "cpu", "mps", "cuda"] = "auto"
     offline: bool = Field(
         default=False, description="No downloads; currently all models are local."
     )
@@ -54,7 +60,7 @@ def load_settings(path: Path | None = None) -> Settings:
     # JSON BACKENDS and nested BACKENDS__BEATS environment forms.
     overrides = {
         kind: value
-        for kind in ("beats", "key", "loudness", "sections", "cues")
+        for kind in ("beats", "key", "loudness", "sections", "cues", "vocals")
         if (value := os.environ.get(f"MIXCONSOLE_BACKEND_{kind.upper()}"))
     }
     if overrides:

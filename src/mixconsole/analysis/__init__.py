@@ -7,6 +7,7 @@ from typing import Literal, cast
 
 from mixconsole.analysis import cache, registry
 from mixconsole.analysis.features import extract
+from mixconsole.analysis.interfaces import VocalContext
 from mixconsole.analysis.models import ArrayRef, TrackAnalysis
 from mixconsole.analysis.structure import bar_sections, bars_and_energy, phrases, tempo_map
 from mixconsole.io import file_sha256, load_audio
@@ -26,7 +27,7 @@ def analyze(
 ) -> TrackAnalysis:
     """Analyze local audio using named backends, with transparent optional fallback.
 
-    `backends` keys: beats, key, loudness, sections, cues. The fixed analysis seed
+    `backends` keys: beats, key, loudness, sections, cues, vocals. The fixed analysis seed
     is zero. `use_cache=False` performs no cache reads/writes. Long numeric arrays
     are available in `result.arrays`; use cache.save_analysis for portable export.
     """
@@ -93,6 +94,23 @@ def analyze(
     )
     stage("structure", 0.8)
     bars, energy = bars_and_energy(features, beats.downbeats, audio.duration, audio.sample_rate)
+    stage("vocals", 0.85)
+    vocals = registry.run(
+        "vocals",
+        names,
+        lambda name: registry.VOCALS[name].analyze(
+            VocalContext(
+                audio.samples,
+                audio.pcm_sha256,
+                audio.duration,
+                beats.beats,
+                bars,
+                edges,
+                features,
+                root if use_cache else None,
+            )
+        ),
+    )
     result = TrackAnalysis(
         file=str(source),
         file_sha256=audio.file_sha256,
@@ -116,6 +134,8 @@ def analyze(
             columns=["rms", "onset_strength", "low", "mid", "high"],
         ),
         edges=edges,
+        vocal_activity=vocals.activity,
+        stems=vocals.stems,
         backend_versions=registry.versions(names),
     )
     stage("cache_write", 0.9)

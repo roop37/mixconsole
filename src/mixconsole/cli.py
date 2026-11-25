@@ -204,19 +204,22 @@ app.add_typer(models_app, name="models")
 
 @models_app.command("fetch")
 def models_fetch_command(
-    name: Annotated[str, typer.Argument(help="beat_this")],
+    name: Annotated[str, typer.Argument(help="beat_this or htdemucs")],
 ) -> None:
-    """Fetch the official Beat This! checkpoint into the ignored cache."""
-    from mixconsole.analysis.model_manager import BEAT_THIS_SHA256, fetch_beat_this
+    """Fetch an official, checksum-pinned checkpoint into the ignored cache."""
+    from mixconsole.analysis import model_manager
 
-    if name != "beat_this":
-        raise typer.BadParameter("choose beat_this")
+    if name not in ("beat_this", "htdemucs"):
+        raise typer.BadParameter("choose beat_this or htdemucs")
     try:
-        path = fetch_beat_this()
+        if name == "beat_this":
+            path, sha = model_manager.fetch_beat_this(), model_manager.BEAT_THIS_SHA256
+        else:
+            path, sha = model_manager.fetch_htdemucs(), model_manager.HTDEMUCS_SHA256
     except (OSError, ValueError) as exc:
         typer.echo(f"Model fetch failed: {exc}", err=True)
         raise typer.Exit(code=1) from exc
-    typer.echo(f"{path} sha256:{BEAT_THIS_SHA256}")
+    typer.echo(f"{path} sha256:{sha}")
 
 
 @cache_app.command("info")
@@ -417,7 +420,22 @@ def render_command(
         typer.echo("Track PCM hash mismatch", err=True)
         raise typer.Exit(code=1)
     out.parent.mkdir(parents=True, exist_ok=True)
-    write_audio(out, render_transition(left.samples, right.samples, script))
+    stems = None
+    if script.transitions[0].family in ("stem_handoff", "vocal_over_instrumental"):
+        from mixconsole.analysis import analyze
+        from mixconsole.config import load_settings
+        from mixconsole.service import stems_for
+
+        folder = load_settings().cache_dir
+        try:
+            stems = (
+                stems_for(analyze(bindings["deck_a"]), left.samples, "exit", folder),
+                stems_for(analyze(bindings["deck_b"]), right.samples, "entry", folder),
+            )
+        except ValueError as exc:
+            typer.echo(f"Render failed: {exc}", err=True)
+            raise typer.Exit(code=1) from exc
+    write_audio(out, render_transition(left.samples, right.samples, script, stems=stems))
     typer.echo(str(out))
 
 

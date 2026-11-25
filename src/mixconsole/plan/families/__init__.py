@@ -16,6 +16,7 @@ from mixconsole.mixscript.models import (
     Family as FamilyName,
 )
 from mixconsole.plan.candidates import Candidate, PlanContext
+from mixconsole.plan.families.stems import StemFamily
 
 logger = logging.getLogger(__name__)
 
@@ -145,6 +146,8 @@ for _name in (
     "echo_out",
 ):
     _REGISTRY[_name] = BasicFamily(_name)  # type: ignore[arg-type]
+for _stem_name in ("stem_handoff", "vocal_over_instrumental"):
+    _REGISTRY[_stem_name] = StemFamily(_stem_name)  # type: ignore[arg-type]
 _loaded = False
 
 

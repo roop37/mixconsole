@@ -6,10 +6,12 @@ import multiprocessing
 from collections.abc import Callable, Mapping, Sequence
 from concurrent.futures import FIRST_COMPLETED, Executor, Future, ProcessPoolExecutor, wait
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from mixconsole.analysis import analyze
 from mixconsole.analysis.models import TrackAnalysis
 from mixconsole.config import load_settings
+from mixconsole.io import Audio
 from mixconsole.mixscript.models import MixScript, RejectedCandidate
 from mixconsole.plan.candidates import Candidate
 from mixconsole.progress import (
@@ -23,6 +25,9 @@ from mixconsole.progress import (
 from mixconsole.verify.metrics import SeamMetrics
 
 __all__ = ["CancelToken", "Cancelled", "Progress", "ProgressEvent", "analyze_tracks"]
+if TYPE_CHECKING:
+    from mixconsole.analysis.backends.stems import StemSet
+
 logger = logging.getLogger(__name__)
 
 
@@ -144,6 +149,44 @@ class MixResult:
         self.paths = paths
 
 
+_MATCHED = ("beatmatch_blend", "stem_handoff", "vocal_over_instrumental")
+
+
+def stems_for(
+    analysis: TrackAnalysis, samples: "Audio", role: str, cache_dir: str | Path | None = None
+) -> "StemSet":
+    """Stems of the analysed ``role`` window (a cache hit after analysis).
+
+    Raises ValueError when the analysis has no stem windows (stems extra missing).
+    """
+    from mixconsole.analysis import cache
+    from mixconsole.analysis.backends import stems as stem_backend
+
+    window = (
+        next((w for w in analysis.stems.windows if w.role == role), None)
+        if analysis.stems
+        else None
+    )
+    if window is None:
+        raise ValueError("stem transitions need the stems extra (no stem windows were analysed)")
+    frames = (round(window.start * 44100), round(window.end * 44100))
+    return stem_backend.separate_window(
+        samples, analysis.pcm_sha256, frames, cache_root=cache.cache_root(cache_dir)
+    )
+
+
+def _shift(stem_set: "StemSet", offset: int) -> "StemSet":
+    from mixconsole.analysis.backends.stems import StemSet
+
+    return StemSet(
+        stem_set.start_frame - offset,
+        stem_set.stems,
+        stem_set.latency_frames,
+        stem_set.model,
+        stem_set.stats,
+    )
+
+
 def _candidate_script(
     candidate: "Candidate",
     analyses: list[TrackAnalysis],
@@ -165,7 +208,9 @@ def _candidate_script(
         TrackTarget,
         Transition,
     )
+    from mixconsole.plan.candidates import effective_tempo
     from mixconsole.plan.families import families
+    from mixconsole.score.heuristic import SCORER_VERSION
 
     a, b = analyses
     family = next(item for item in families() if item.name == candidate.family)
@@ -182,14 +227,7 @@ def _candidate_script(
             )
         )
     bpm = candidate.bpm or 120.0
-    effective_bpm = (
-        min(
-            (b.global_bpm * scale for scale in (0.5, 1.0, 2.0)),
-            key=lambda value: abs(value - bpm),
-        )
-        if b.global_bpm
-        else bpm
-    )
+    effective_bpm = effective_tempo(b, bpm) if b.global_bpm else bpm
     relative = abs(effective_bpm - bpm) / bpm
 
     def local_lufs(track: TrackAnalysis, second: float) -> float | None:
@@ -206,7 +244,7 @@ def _candidate_script(
         math.ceil(200 * relative) if candidate.tempo_strategy == "ramp_b_to_a_then_back" else 0
     )
     beat_warp: list[list[int]] = []
-    if candidate.family == "beatmatch_blend" and a.beats and b.beats:
+    if candidate.family in _MATCHED and a.beats and b.beats:
         count = candidate.length_bars * a.meter
         a_grid = [t for t in a.beats if t >= candidate.exit_seconds - 0.001]
         b_grid = [t for t in b.beats if t >= candidate.entry_seconds - 0.001]
@@ -326,7 +364,7 @@ def _candidate_script(
                 **a.backend_versions,
                 **{f"b_{k}": v for k, v in b.backend_versions.items()},
             },
-            scorer_version="heuristic@2",
+            scorer_version=SCORER_VERSION,
             seed=0,
         ),
         extensions={"render.stretcher": "signalsmith@0.3.1"},
@@ -417,10 +455,10 @@ def mix_pair(
     """Plan, audition, render, verify and report a two-track handoff."""
     import json
 
-    from mixconsole.io import SAMPLE_RATE, Audio, load_audio, write_audio
+    from mixconsole.io import SAMPLE_RATE, load_audio, write_audio
     from mixconsole.plan.candidates import plan_pair as make_plan
     from mixconsole.render import render_transition
-    from mixconsole.render.graph import RenderInspection
+    from mixconsole.render.graph import STEM_FAMILIES, RenderInspection
     from mixconsole.report.html import write_html
     from mixconsole.verify import verify_seam
 
@@ -455,6 +493,15 @@ def mix_pair(
     chosen: Candidate | None = None
     measured: SeamMetrics | None = None
 
+    stem_cache: dict[str, StemSet] = {}
+
+    def stems_pair(a_offset: int, b_offset: int) -> "tuple[StemSet, StemSet]":
+        cache_dir = load_settings().cache_dir
+        if "a" not in stem_cache:
+            stem_cache["a"] = stems_for(analyses[0], audio_a.samples, "exit", cache_dir)
+            stem_cache["b"] = stems_for(analyses[1], audio_b.samples, "entry", cache_dir)
+        return _shift(stem_cache["a"], a_offset), _shift(stem_cache["b"], b_offset)
+
     def excerpt(candidate: Candidate, script: MixScript) -> tuple["Audio", int, RenderInspection]:
         context = max(30.0, 8 * 4 * 60 / (candidate.bpm or 120))
         a_start = max(0, round((candidate.exit_seconds - context) * SAMPLE_RATE))
@@ -475,17 +522,29 @@ def mix_pair(
             audio_b.samples[b_start:b_end],
             local,
             inspection=inspection,
+            stems=stems_pair(a_start, b_start) if candidate.family in STEM_FAMILIES else None,
         )
         return pcm, round(local.transitions[0].exit.seconds * SAMPLE_RATE), inspection
 
-    remaining = [candidate for candidate in plan.candidates if candidate not in shortlist]
-    render_order = [*shortlist, *remaining]
+    # Verify in score order so a higher-scored candidate (e.g. a stem handoff at another cue)
+    # is not skipped just because a shortlisted candidate of another family passes. A family
+    # that keeps failing verification is abandoned after four attempts unless it is shortlisted.
+    render_order = list(plan.candidates)
+    failures: dict[str, int] = {}
     for index, candidate in enumerate(render_order):
+        if failures.get(candidate.family, 0) >= 4 and candidate not in shortlist:
+            continue
         checkpoint(progress, cancel, "render", index / max(1, len(render_order)))
         script = _candidate_script(
             candidate, analyses, alternatives=shortlist, rejected=plan.rejected
         )
-        pcm, seam, inspection = excerpt(candidate, script)
+        try:
+            pcm, seam, inspection = excerpt(candidate, script)
+        except ValueError as exc:
+            if candidate.family not in STEM_FAMILIES:
+                raise
+            checks.append({"candidate": candidate.id, "passed": False, "reason": str(exc)})
+            continue
         checkpoint(progress, cancel, "verify", index / max(1, len(render_order)))
         metric = verify_seam(
             pcm,
@@ -496,12 +555,14 @@ def mix_pair(
             max_peak=load_settings().max_true_peak_dbtp,
             max_drift=load_settings().max_drift_ms,
             max_low_overlap=load_settings().max_low_overlap_bars,
+            max_vocal_overlap_beats=load_settings().max_vocal_overlap_beats,
+            beats_per_bar=candidate.beats_per_bar,
             inspection=inspection,
         )
         checks.append({"candidate": candidate.id, **metric.as_dict()})
         if (
             not metric.passed
-            and candidate.family == "beatmatch_blend"
+            and candidate.family in ("beatmatch_blend", *STEM_FAMILIES)
             and metric.loudness_dip_lu > load_settings().max_loudness_dip_lu
             and metric.drift_ms is not None
             and metric.drift_ms < load_settings().max_drift_ms
@@ -531,6 +592,8 @@ def mix_pair(
             preview = folder / f"preview-{candidate.id}.wav"
             write_audio(preview, pcm[start : min(len(pcm), start + 30 * SAMPLE_RATE)])
             _encode_preview(preview)
+        if not metric.passed:
+            failures[candidate.family] = failures.get(candidate.family, 0) + 1
         if metric.passed and chosen is None:
             chosen, measured = candidate, metric
         if chosen is not None and all(
@@ -598,7 +661,15 @@ def mix_pair(
             f"loudness dip {measured.loudness_dip_lu:.2f} LU, "
             f"peak {measured.true_peak_dbtp:.2f} dBTP."
         )
-    rendered = render_transition(audio_a.samples, audio_b.samples, script)
+    full_stems = (
+        (
+            stems_for(analyses[0], audio_a.samples, "exit", load_settings().cache_dir),
+            stems_for(analyses[1], audio_b.samples, "entry", load_settings().cache_dir),
+        )
+        if chosen.family in STEM_FAMILIES
+        else None
+    )
+    rendered = render_transition(audio_a.samples, audio_b.samples, script, stems=full_stems)
     for summary in script.transitions[0].candidates:
         for extension in (".opus", ".wav"):
             preview = folder / f"preview-{summary.id}{extension}"

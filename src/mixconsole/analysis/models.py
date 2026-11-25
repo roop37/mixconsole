@@ -79,6 +79,53 @@ class Edges(Model):
     hard_ending: bool
 
 
+class Span(Model):
+    """Half-open [start, end) interval in seconds."""
+
+    start: Time
+    end: Time
+
+    @model_validator(mode="after")
+    def ordered(self) -> Self:
+        if self.start >= self.end:
+            raise ValueError("span start must precede end")
+        return self
+
+
+class VocalActivity(Model):
+    """Lead-vocal presence. ``per_bar``/``per_beat`` are the active fraction of each bar/beat.
+
+    ``source`` is "stem" when every value comes from a separated vocal stem and "heuristic"
+    when any part comes from the low-confidence spectral estimate; ``stem_regions`` lists
+    the stem-derived windows. ``gaps`` are vocal-free spans of at least 300 ms.
+    """
+
+    source: Literal["stem", "heuristic"]
+    confidence: Probability
+    stem_regions: list[Span] = Field(default_factory=list[Span])
+    spans: list[Span]
+    gaps: list[Span]
+    per_bar: list[Probability]
+    per_beat: list[Probability]
+
+
+class StemWindow(Model):
+    role: Literal["exit", "entry"]
+    start: Time
+    end: Time
+
+
+class StemsInfo(Model):
+    """Separated windows (exit window of the outgoing role, entry window of the incoming role).
+
+    The stems themselves live in the stem cache keyed by (pcm_sha256, window, model).
+    """
+
+    model: str
+    checkpoint_sha256: Digest
+    windows: list[StemWindow]
+
+
 class TrackAnalysis(Model):
     version: Literal["track-analysis/v1"] = "track-analysis/v1"
     file: str
@@ -99,7 +146,8 @@ class TrackAnalysis(Model):
     loudness: Loudness
     bar_energy: ArrayRef
     edges: Edges
-    vocal_activity: None = None
+    vocal_activity: VocalActivity | None = None
+    stems: StemsInfo | None = None
     backend_versions: dict[str, str]
     analysis_seed: Annotated[int, Field(ge=0)] = 0
     arrays_sha256: Digest | None = None

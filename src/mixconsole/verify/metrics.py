@@ -28,6 +28,9 @@ class SeamMetrics:
     low_overlap_bars: float | None
     passed: bool
     reason: str
+    # Stem seams only (measured on the rendered, post-automation stems); None otherwise.
+    vocal_overlap_seconds: float | None = None
+    bass_overlap_bars: float | None = None
 
     def as_dict(self) -> dict[str, float | int | bool | str | None]:
         return vars(self).copy()
@@ -104,6 +107,50 @@ def _low_overlap(inspection: RenderInspection | None, bpm: float) -> float | Non
     return longest * block / SAMPLE_RATE * bpm / 240
 
 
+def _active_blocks(audio: Audio, block: int) -> np.ndarray:
+    """Blocks whose RMS exceeds 10 % of the signal's own 95th-percentile block RMS."""
+    rms = np.array([_rms(audio[i : i + block]) for i in range(0, len(audio), block)])
+    if not len(rms):
+        return np.zeros(0, dtype=bool)
+    return rms > max(1e-3, float(np.quantile(rms, 0.95)) * 0.1)
+
+
+def _stem_overlap(inspection: RenderInspection | None, stem: str) -> tuple[float, int] | None:
+    """(total seconds, longest run in blocks) where A's and B's ``stem`` are both audible.
+
+    Returns the block length in the second slot's unit via the caller (20 ms blocks).
+    """
+    if inspection is None:
+        return None
+    left = inspection.stem_contributions.get(f"a:{stem}")
+    right = inspection.stem_contributions.get(f"b:{stem}")
+    if left is None or right is None:
+        return None
+    block = SAMPLE_RATE // 50
+    both = _active_blocks(left, block) & _active_blocks(right, block)
+    longest = current = 0
+    for flag in both:
+        current = current + 1 if flag else 0
+        longest = max(longest, current)
+    return float(both.sum()) * block / SAMPLE_RATE, longest
+
+
+def vocal_overlap_seconds(inspection: RenderInspection | None) -> float | None:
+    """Seconds in which both the outgoing and incoming vocal stems are audible."""
+    measured = _stem_overlap(inspection, "vocals")
+    return None if measured is None else measured[0]
+
+
+def bass_overlap_bars(
+    inspection: RenderInspection | None, bpm: float, beats_per_bar: int
+) -> float | None:
+    """Longest run (bars) in which both bass stems are audible."""
+    measured = _stem_overlap(inspection, "bass")
+    if measured is None:
+        return None
+    return measured[1] * (SAMPLE_RATE // 50) / SAMPLE_RATE * bpm / (60 * beats_per_bar)
+
+
 def verify_seam(
     audio: Audio,
     seam_frame: int,
@@ -114,6 +161,8 @@ def verify_seam(
     max_peak: float = -1.0,
     max_drift: float = 5.0,
     max_low_overlap: float = 1.0,
+    max_vocal_overlap_beats: float = 1.0,
+    beats_per_bar: int = 4,
     inspection: RenderInspection | None = None,
 ) -> SeamMetrics:
     """Measure level, peak, impulses, phase drift and low-band coexistence."""
@@ -144,7 +193,10 @@ def verify_seam(
     clicks = int(np.count_nonzero(derivative > threshold))
     peak = true_peak_dbtp(audio)
     drift = _drift(inspection)
-    overlap = _low_overlap(inspection, bpm)
+    vocal_overlap = vocal_overlap_seconds(inspection)
+    bass_overlap = bass_overlap_bars(inspection, bpm, beats_per_bar)
+    # Stem seams measure the bass stems; whole-mix low bands would count the kicks.
+    overlap = bass_overlap if bass_overlap is not None else _low_overlap(inspection, bpm)
     failures: list[str] = []
     if dip > max_dip:
         failures.append(f"loudness dip {dip:.2f} LU exceeds {max_dip:.2f}")
@@ -165,6 +217,10 @@ def verify_seam(
             failures.append("low-band overlap not measurable on an overlapping seam")
     elif overlap > max_low_overlap:
         failures.append(f"low-band overlap {overlap:.2f} bars exceeds {max_low_overlap:.2f}")
+    if vocal_overlap is not None and vocal_overlap > max_vocal_overlap_beats * 60 / bpm + 1e-9:
+        failures.append(
+            f"vocal overlap {vocal_overlap:.2f} s exceeds {max_vocal_overlap_beats:g} beat(s)"
+        )
     return SeamMetrics(
         drift,
         float(dip),
@@ -174,4 +230,6 @@ def verify_seam(
         overlap,
         not failures,
         "; ".join(failures) or "passed",
+        vocal_overlap,
+        bass_overlap,
     )

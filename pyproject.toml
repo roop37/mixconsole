@@ -30,12 +30,27 @@ mixconsole = "mixconsole.cli:app"
 
 [project.optional-dependencies]
 neural = ["beat-this>=1.1", "torch>=2"]
-stems = []
+stems = [
+  # demucs 4.1 pins torch<2.3 on Intel macOS; stems need Apple Silicon, Linux or Windows.
+  "demucs>=4.1.0; sys_platform != 'darwin' or platform_machine != 'x86_64'",
+]
 ui = []
 all = ["mixconsole[neural]"]
 
 [dependency-groups]
-dev = ["ruff>=0.9", "pyright>=1.1.390", "pytest>=8", "hypothesis>=6", "pre-commit>=4", "pytest-cov>=6", "pytest-timeout>=2", "pip-audit>=2.9", "hatchling>=1.27", "pre-commit-hooks>=5"]
+dev = [
+    "ruff>=0.9",
+    "pyright>=1.1.390",
+    "pytest>=8",
+    "hypothesis>=6",
+    "pre-commit>=4",
+    "pytest-cov>=6",
+    "pytest-timeout>=2",
+    "pip-audit>=2.9",
+    "hatchling>=1.27",
+    "pre-commit-hooks>=5",
+    "pytest-xdist>=3.6",
+]
 docs = ["mkdocs-material>=9", "mkdocs-include-markdown-plugin>=7", "mkdocstrings[python]>=0.27"]
 
 [tool.hatch.build.targets.wheel]
@@ -83,3 +98,15 @@ torchaudio = [{ index = "pytorch-cpu", marker = "sys_platform != 'darwin'" }]
 name = "pytorch-cpu"
 url = "https://download.pytorch.org/whl/cpu"
 explicit = true
+
+# demucs 4.1 pins torch<2.3 / numpy<2 for Intel macOS only; the stems extra is
+# marked Apple Silicon/Linux/Windows, so these overrides keep a single resolution fork.
+# lameenc (LGPL MP3 encoder) and sphn (no licence metadata) are demucs I/O helpers that
+# MixConsole never imports (it uses demucs.apply/pretrained only), so they are not installed.
+[tool.uv]
+override-dependencies = [
+  "torch>=2.1",
+  "numpy>=1.26",
+  "lameenc; python_version < '0'",
+  "sphn; python_version < '0'",
+]

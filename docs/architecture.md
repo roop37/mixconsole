@@ -18,7 +18,8 @@ transition templates through the same entry-point pattern.
 Plugins are installed Python code and run with the user's privileges.
 
 M2 uses six stem-free families, a style-weighted heuristic and audio-derived
-seam checks. M3 adds optional stems and vocal-aware handoffs.
+seam checks. M3 adds optional stems (Demucs windows), vocal activity and the `stem_handoff` and
+`vocal_over_instrumental` families.
 
 M4.5 adds FastAPI HTTP endpoints, job state, SSE progress, portable SQLite projects,
 append-only MixScript history, a library index and preview artifacts. M5 adds a

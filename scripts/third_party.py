@@ -55,6 +55,7 @@ CLASSIFIERS = {
 }
 ALIASES = {
     "Apache 2.0": "Apache-2.0",
+    "MIT License": "MIT",
     "Apache Software License": "Apache-2.0",
     "BSD 3-Clause License": "BSD-3-Clause",
     "ISC License": "ISC",

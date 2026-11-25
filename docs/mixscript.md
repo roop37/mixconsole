@@ -3,8 +3,9 @@
 Generated from the JSON Schema; do not edit.
 
 Schema validation checks structure. Python validation also enforces references,
-unique IDs, ordered points, cue/play bounds and locks. M2 renders the
-supported stem-free families.
+unique IDs, ordered points, cue/play bounds and locks. M2 renders the six
+stem-free families; M3 renders `stem_handoff` and `vocal_over_instrumental`
+(per-stem gain lanes) when stems are available.
 
 ## MixScript
 

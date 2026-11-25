@@ -62,7 +62,8 @@ def _automation(lanes: list[AutomationLane]) -> str:
             for point in lane.points
         )
         color = "#62b6e8" if lane.target.track == "deck_a" else "#f6b463"
-        label = f"{lane.target.track} {lane.parameter}: {low:g} to {high:g}"
+        stem = f" {lane.target.stem}" if lane.target.kind == "stem" else ""
+        label = f"{lane.target.track}{stem} {lane.parameter}: {low:g} to {high:g}"
         paths.append(
             f'<polyline points="{points}" fill="none" stroke="{color}" '
             f'stroke-width="3"><title>{html.escape(label)}</title></polyline>'
@@ -92,6 +93,10 @@ def render_analysis_html(analysis: TrackAnalysis, audio_path: Path, html_path: P
         )
     title = html.escape(Path(analysis.file).name)
     return f"""<!doctype html><html lang="en"><meta charset="utf-8"><title>{title} · MixConsole analysis</title><style>body{{font:16px system-ui;max-width:1000px;margin:auto;padding:24px;background:#101723;color:#eee}}svg{{width:100%;background:#1b2637}}#wave{{cursor:pointer}}audio{{width:100%}}</style><h1>{title}</h1><p>{analysis.duration:.1f} s · {analysis.global_bpm or 0:.1f} BPM · {len(analysis.sections)} sections</p><p>Click the waveform to seek. Markers: beat (gray), bar (blue), phrase (amber), section (purple).</p><div id="wave">{_waveform(analysis)}</div><audio id="player" controls preload="metadata" src="{source}"></audio><h2>Short-term loudness (LUFS)</h2><svg viewBox="0 0 800 100" role="img" aria-label="Short-term LUFS from -60 to 0"><polyline points="{curve}" fill="none" stroke="#65d5b4" stroke-width="2"/></svg><script>document.getElementById('wave').addEventListener('click', function(event) {{ const svg = this.querySelector('svg'); const bounds = svg.getBoundingClientRect(); const position = Math.max(0, Math.min(1, (event.clientX - bounds.left) / bounds.width)); const player = document.getElementById('player'); player.currentTime = position * {analysis.duration:.9f}; }});</script></html>"""
+
+
+def _na(value: object) -> str:
+    return "n/a" if value is None else f"{float(str(value)):.2f}"
 
 
 def render_html(
@@ -129,13 +134,19 @@ def render_html(
         "<tr>"
         + "".join(
             f"<td>{html.escape(str(value))}</td>"
-            for value in (result.get("candidate"), result.get("passed"), result.get("reason"))
+            for value in (
+                result.get("candidate"),
+                result.get("passed"),
+                result.get("reason"),
+                _na(result.get("vocal_overlap_seconds")),
+                _na(result.get("bass_overlap_bars")),
+            )
         )
         + "</tr>"
         for result in verifications
     )
     explanation = transition.explanation.chosen_because if transition.explanation else ""
-    return f"""<!doctype html><html lang="en"><meta charset="utf-8"><title>MixConsole transition</title><style>body{{font:16px system-ui;max-width:1000px;margin:auto;padding:24px;background:#101723;color:#eee}}svg{{width:100%;background:#1b2637}}article{{padding:12px;border:1px solid #445;margin:8px 0}}table{{border-collapse:collapse;display:block;overflow-x:auto}}th,td{{border:1px solid #445;padding:5px 12px}}audio{{width:100%}}summary{{cursor:pointer}}</style><h1>{html.escape(Path(a.file).name)} → {html.escape(Path(b.file).name)}</h1><p>Chosen: {html.escape(transition.family)}. {html.escape(explanation)}</p><p>Markers: beat (gray), bar (blue), phrase (amber), section (purple), chosen cue (red).</p><h2>Deck A</h2>{_waveform(a, transition.exit.seconds)}<h2>Deck B</h2>{_waveform(b, transition.entry.seconds)}<h2>Automation</h2>{_automation(transition.automation)}<h2>Audition candidates</h2>{cards}<h2>Score breakdown</h2><table><tr><th>ID</th><th>Family</th><th>Score</th>{header}</tr>{rows}</table><h2>Verification</h2><table><tr><th>Candidate</th><th>Passed</th><th>Reason</th></tr>{checks}</table><details><summary>Pruned proposals ({len(transition.explanation.rejected_candidates) if transition.explanation else 0})</summary><ul>{rejections}</ul></details></html>"""
+    return f"""<!doctype html><html lang="en"><meta charset="utf-8"><title>MixConsole transition</title><style>body{{font:16px system-ui;max-width:1000px;margin:auto;padding:24px;background:#101723;color:#eee}}svg{{width:100%;background:#1b2637}}article{{padding:12px;border:1px solid #445;margin:8px 0}}table{{border-collapse:collapse;display:block;overflow-x:auto}}th,td{{border:1px solid #445;padding:5px 12px}}audio{{width:100%}}summary{{cursor:pointer}}</style><h1>{html.escape(Path(a.file).name)} → {html.escape(Path(b.file).name)}</h1><p>Chosen: {html.escape(transition.family)}. {html.escape(explanation)}</p><p>Markers: beat (gray), bar (blue), phrase (amber), section (purple), chosen cue (red).</p><h2>Deck A</h2>{_waveform(a, transition.exit.seconds)}<h2>Deck B</h2>{_waveform(b, transition.entry.seconds)}<h2>Automation</h2>{_automation(transition.automation)}<h2>Audition candidates</h2>{cards}<h2>Score breakdown</h2><table><tr><th>ID</th><th>Family</th><th>Score</th>{header}</tr>{rows}</table><h2>Verification</h2><table><tr><th>Candidate</th><th>Passed</th><th>Reason</th><th>Vocal overlap (s)</th><th>Bass overlap (bars)</th></tr>{checks}</table><details><summary>Pruned proposals ({len(transition.explanation.rejected_candidates) if transition.explanation else 0})</summary><ul>{rejections}</ul></details></html>"""
 
 
 def write_html(

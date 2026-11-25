@@ -129,3 +129,19 @@ def test_result_reader_skips_unrelated_json_and_compare_handles_zero(tmp_path):
     old = new_result("perf", {"decode_30s": 0.0})
     new = old.model_copy(update={"metrics": {"decode_30s": 1.0, "new_metric": 1.0}})
     assert compare(old, new) == []
+
+
+def test_tiny_accuracy_grid_runs_every_path_and_hits_targets():
+    from mixconsole.bench.accuracy import run_accuracy
+
+    result = run_accuracy(tiny=True)
+    metrics = result.metrics
+    assert result.parameters["tiny"] == 1
+    assert metrics["tempo_acc1_clean"] == 1.0
+    assert metrics["beat_f_mean_clean"] > 0.9
+    assert metrics["key_exact_rate_snr20"] == 1.0
+    assert metrics["phrase_exact_rate"] == 1.0
+    assert metrics["meter_3_4_rate_snr20"] == 1.0
+    assert metrics["sections_breakdown_exact_snr20"] == 1.0
+    assert result.backends["vocals"].startswith("heuristic@")
+    assert metrics["lufs_error_max"] < 1.0

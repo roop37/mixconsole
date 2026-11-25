@@ -1,11 +1,23 @@
 """Backend contracts; implementations receive shared, deterministic features."""
 
 from dataclasses import dataclass
-from typing import Protocol
+from pathlib import Path
+from typing import TYPE_CHECKING, Protocol
 
 from mixconsole.analysis.features import Features, FloatArray
-from mixconsole.analysis.models import Edges, Key, Loudness, Section
+from mixconsole.analysis.models import (
+    Bar,
+    Edges,
+    Key,
+    Loudness,
+    Section,
+    StemsInfo,
+    VocalActivity,
+)
 from mixconsole.io import Audio
+
+if TYPE_CHECKING:
+    from mixconsole.analysis.backends.stems import Separator
 
 
 @dataclass
@@ -39,3 +51,28 @@ class SectionBackend(Backend, Protocol):
 
 class CueBackend(Backend, Protocol):
     def analyze(self, audio: Audio, sample_rate: int, bpm: float | None) -> Edges: ...
+
+
+@dataclass
+class VocalContext:
+    """Everything a vocal backend needs; stems are separated lazily and cached."""
+
+    audio: Audio
+    pcm_sha256: str
+    duration: float
+    beats: list[float]
+    bars: list[Bar]
+    edges: Edges
+    features: Features
+    cache_root: Path | None = None
+    separator: "Separator | None" = None
+
+
+@dataclass
+class VocalResult:
+    activity: VocalActivity
+    stems: StemsInfo | None
+
+
+class VocalBackend(Backend, Protocol):
+    def analyze(self, ctx: VocalContext) -> VocalResult: ...

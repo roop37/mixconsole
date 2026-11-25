@@ -10,6 +10,7 @@ The offline gate validates this versioned metadata snapshot and rejects unknown 
 | --- | --- | --- | --- |
 | annotated-doc | 0.0.6 | MIT | [upstream](https://pypi.org/project/annotated-doc/0.0.6/) |
 | annotated-types | 0.8.0 | MIT | [upstream](https://pypi.org/project/annotated-types/0.8.0/) |
+| anyio | 4.16.0 | MIT | [upstream](https://pypi.org/project/anyio/4.16.0/) |
 | babel | 2.18.0 | BSD-3-Clause | [upstream](https://pypi.org/project/babel/2.18.0/) |
 | backrefs | 8.3 | MIT | [upstream](https://pypi.org/project/backrefs/8.3/) |
 | beat-this | 1.1.0 | MIT | [upstream](https://pypi.org/project/beat-this/1.1.0/) |
@@ -27,19 +28,28 @@ The offline gate validates this versioned metadata snapshot and rejects unknown 
 | cyclonedx-python-lib | 11.12.0 | Apache-2.0 | [upstream](https://pypi.org/project/cyclonedx-python-lib/11.12.0/) |
 | decorator | 5.3.1 | BSD-2-Clause | [upstream](https://pypi.org/project/decorator/5.3.1/) |
 | defusedxml | 0.7.1 | PSF-2.0 | [upstream](https://pypi.org/project/defusedxml/0.7.1/) |
+| demucs | 4.1.0 | MIT | [upstream](https://pypi.org/project/demucs/4.1.0/) |
 | distlib | 0.4.4 | PSF-2.0 | [upstream](https://pypi.org/project/distlib/0.4.4/) |
 | einops | 0.8.2 | MIT | [upstream](https://pypi.org/project/einops/0.8.2/) |
+| execnet | 2.1.2 | MIT | [upstream](https://pypi.org/project/execnet/2.1.2/) |
 | filelock | 4.2.11 | MIT | [upstream](https://pypi.org/project/filelock/4.2.11/) |
 | fsspec | 2026.9.0 | BSD-3-Clause | [upstream](https://pypi.org/project/fsspec/2026.9.0/) |
 | ghp-import | 2.1.0 | Apache-2.0 | [upstream](https://pypi.org/project/ghp-import/2.1.0/) |
 | griffelib | 2.4.1 | ISC | [upstream](https://pypi.org/project/griffelib/2.4.1/) |
+| h11 | 0.16.0 | MIT | [upstream](https://pypi.org/project/h11/0.16.0/) |
 | hatchling | 1.33.0 | MIT | [upstream](https://pypi.org/project/hatchling/1.33.0/) |
+| hf-xet | 1.8.0 | Apache-2.0 | [upstream](https://pypi.org/project/hf-xet/1.8.0/) |
+| httpcore2 | 2.16.2 | BSD-3-Clause | [upstream](https://pypi.org/project/httpcore2/2.16.2/) |
+| httpx2 | 2.16.2 | BSD-3-Clause | [upstream](https://pypi.org/project/httpx2/2.16.2/) |
+| httpx2-jsfetch | 1.0 | BSD-3-Clause | [upstream](https://pypi.org/project/httpx2-jsfetch/1.0/) |
+| huggingface-hub | 2.4.0 | Apache-2.0 | [upstream](https://pypi.org/project/huggingface-hub/2.4.0/) |
 | hypothesis | 6.170.15 | MPL-2.0 | [upstream](https://pypi.org/project/hypothesis/6.170.15/) |
 | identify | 2.6.20 | MIT | [upstream](https://pypi.org/project/identify/2.6.20/) |
 | idna | 3.20 | BSD-3-Clause | [upstream](https://pypi.org/project/idna/3.20/) |
 | iniconfig | 2.3.1 | MIT | [upstream](https://pypi.org/project/iniconfig/2.3.1/) |
 | jinja2 | 3.1.6 | BSD-3-Clause | [upstream](https://pypi.org/project/jinja2/3.1.6/) |
 | joblib | 1.6.0 | BSD-3-Clause | [upstream](https://pypi.org/project/joblib/1.6.0/) |
+| julius | 0.2.8 | MIT | [upstream](https://pypi.org/project/julius/0.2.8/) |
 | lazy-loader | 0.6 | BSD-3-Clause | [upstream](https://pypi.org/project/lazy-loader/0.6/) |
 | librosa | 1.0.1 | ISC | [upstream](https://pypi.org/project/librosa/1.0.1/) |
 | license-expression | 30.4.4 | Apache-2.0 | [upstream](https://pypi.org/project/license-expression/30.4.4/) |
@@ -90,6 +100,7 @@ The offline gate validates this versioned metadata snapshot and rejects unknown 
 | pytest | 9.2.0 | MIT | [upstream](https://pypi.org/project/pytest/9.2.0/) |
 | pytest-cov | 7.1.0 | MIT | [upstream](https://pypi.org/project/pytest-cov/7.1.0/) |
 | pytest-timeout | 2.4.0 | MIT | [upstream](https://pypi.org/project/pytest-timeout/2.4.0/) |
+| pytest-xdist | 3.8.0 | MIT | [upstream](https://pypi.org/project/pytest-xdist/3.8.0/) |
 | python-dateutil | 4.0.0 | BSD-3-Clause | [upstream](https://pypi.org/project/python-dateutil/4.0.0/) |
 | python-discovery | 1.9.5 | MIT | [upstream](https://pypi.org/project/python-discovery/1.9.5/) |
 | python-dotenv | 1.2.4 | BSD-3-Clause | [upstream](https://pypi.org/project/python-dotenv/1.2.4/) |
@@ -101,6 +112,7 @@ The offline gate validates this versioned metadata snapshot and rejects unknown 
 | rotary-embedding-torch | 0.9.2 | MIT | [upstream](https://pypi.org/project/rotary-embedding-torch/0.9.2/) |
 | ruamel-yaml | 0.19.1 | MIT | [upstream](https://pypi.org/project/ruamel-yaml/0.19.1/) |
 | ruff | 0.17.5 | MIT | [upstream](https://pypi.org/project/ruff/0.17.5/) |
+| safetensors | 0.8.0 | Apache-2.0 | [upstream](https://pypi.org/project/safetensors/0.8.0/) |
 | scikit-learn | 1.9.1 | BSD-3-Clause | [upstream](https://pypi.org/project/scikit-learn/1.9.1/) |
 | scipy | 1.18.1 | BSD-3-Clause | [upstream](https://pypi.org/project/scipy/1.18.1/) |
 | setuptools | 84.2.1 | MIT | [upstream](https://pypi.org/project/setuptools/84.2.1/) |
@@ -116,7 +128,9 @@ The offline gate validates this versioned metadata snapshot and rejects unknown 
 | torch | 2.15.0 | Apache-2.0 AND Apache-2.0 WITH LLVM-exception AND BSD-2-Clause AND BSD-3-Clause AND BSL-1.0 AND ISC AND MIT AND Zlib | [upstream](https://pypi.org/project/torch/2.15.0/) |
 | torch | 2.15.0+cpu | Apache-2.0 AND Apache-2.0 WITH LLVM-exception AND BSD-2-Clause AND BSD-3-Clause AND BSL-1.0 AND ISC AND MIT AND Zlib | [upstream](https://pypi.org/project/torch/2.15.0/) |
 | torchaudio | 2.11.1 | BSD-2-Clause | [upstream](https://pypi.org/project/torchaudio/2.11.1/) |
+| tqdm | 4.70.1 | MPL-2.0 AND MIT | [upstream](https://pypi.org/project/tqdm/4.70.1/) |
 | trove-classifiers | 2026.9.21.13 | Apache-2.0 | [upstream](https://pypi.org/project/trove-classifiers/2026.9.21.13/) |
+| truststore | 0.10.5 | MIT | [upstream](https://pypi.org/project/truststore/0.10.5/) |
 | typer | 0.29.1 | MIT | [upstream](https://pypi.org/project/typer/0.29.1/) |
 | typing-extensions | 4.16.0 | PSF-2.0 | [upstream](https://pypi.org/project/typing-extensions/4.16.0/) |
 | typing-inspection | 0.4.5 | MIT | [upstream](https://pypi.org/project/typing-inspection/0.4.5/) |
@@ -169,6 +183,19 @@ metadata for absent extras; CPU torch uses its upstream release metadata.
   `8c328b45f59d8dd3dff219253ff6a8d6482be57d0133a29140e2febbf8eb8331`.
   No weights are bundled. Users can override the checkpoint path; its hash enters
   analysis provenance. [License](https://github.com/CPJKU/beat_this#license).
+- **Demucs htdemucs** (stems extra, M3): Demucs code (`demucs` 4.1.0) and the
+  published `htdemucs` weights (signature `955717e8`) are MIT-licensed by Meta
+  Platforms ([LICENSE](https://github.com/facebookresearch/demucs/blob/main/LICENSE);
+  the README states that the code and models are released under MIT). The optional
+  model manager fetches `955717e8-8726e21a.th` from
+  [dl.fbaipublicfiles.com](https://dl.fbaipublicfiles.com/demucs/hybrid_transformer/955717e8-8726e21a.th)
+  into the ignored MixConsole cache and verifies SHA-256
+  `8726e21a993978c7ba086d3872e7608d7d5bfca646ca4aca459ffda844faa8b4`. No weights
+  are bundled. The training data (MUSDB18-HQ plus 800 licensed songs) is not
+  redistributed. Only `demucs.apply`/`demucs.pretrained` are imported;
+  demucs' I/O helpers `lameenc` (LGPL-3.0, MP3 encoder) and `sphn` (no licence
+  metadata) are excluded from the lock via uv `override-dependencies` and never
+  loaded. Intel macOS is not supported for stems (demucs pins torch<2.3 there).
 - **All-In-One**: reserved stub, never executed/installed by an extra. Upstream
   code MIT; NATTEN/madmom constraints require a separate review before enabling.
   [Upstream](https://github.com/mir-aidj/all-in-one).

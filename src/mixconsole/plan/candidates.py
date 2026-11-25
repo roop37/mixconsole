@@ -24,6 +24,9 @@ class Candidate:
     tempo_strategy: TempoName
     beats_per_bar: int = 4
     score: float = 0.0
+    variant: str = ""
+    params: dict[str, float] = field(default_factory=dict[str, float])
+    veto: str | None = None
     seam_gain_db: float = 0.0
     features: dict[str, float] = field(default_factory=dict[str, float])
 
@@ -47,6 +50,16 @@ class PlanContext:
 class PlanResult:
     candidates: list[Candidate]
     rejected: list[RejectedCandidate]
+
+
+def effective_tempo(b: TrackAnalysis, bpm: float | None) -> float:
+    """B's tempo after the half/double-time choice closest to the reference ``bpm``."""
+    reference = bpm or 120.0
+    if not b.global_bpm:
+        return reference
+    return min(
+        (b.global_bpm * scale for scale in (0.5, 1.0, 2.0)), key=lambda v: abs(v - reference)
+    )
 
 
 def cues(analysis: TrackAnalysis, *, exit_track: bool) -> list[float]:
@@ -117,6 +130,15 @@ def plan_pair(
     ctx = PlanContext(cues(a, exit_track=True), cues(b, exit_track=False), LENGTHS, bpm, strategy)
     for family in families():
         proposed: list[Candidate] = []
+        unavailable = getattr(family, "unavailable", None)
+        reason_na = unavailable(a, b) if callable(unavailable) else None
+        if reason_na:
+            rejected.append(
+                RejectedCandidate(
+                    candidate_id=f"{family.name}_na", family=family.name, reason=str(reason_na)
+                )
+            )  # type: ignore[arg-type]
+            continue
         for candidate in family.candidates(a, b, ctx):
             ident = f"c{len(result) + len(proposed) + len(rejected):05d}"
             candidate.id = ident

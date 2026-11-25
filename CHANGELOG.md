@@ -4,6 +4,16 @@
 
 ### Added
 
+- M3 optional `stems` extra (Demucs htdemucs, MIT, checksum-pinned weights via
+  `mixconsole models fetch htdemucs`), windowed exit/entry stem separation cached per
+  PCM hash/window/model on CPU or Apple MPS, and residual-folded stems that re-sum exactly.
+- Vocal activity per bar/beat, lyric gaps (>= 300 ms) and stem windows in `TrackAnalysis`
+  (additive schema change); spectral heuristic fallback when the extra is absent.
+- `stem_handoff` (classic and key-clash `drums_only`) and `vocal_over_instrumental`
+  families with a lead-vocal/bass/lyric-gap constraint set, per-stem automation lanes,
+  latency-compensated re-summing, and measured vocal/bass overlap in verification.
+- Fast tiny-grid accuracy test, xdist test runs and a 91 % coverage floor.
+
 - M2 six transition families, bounded planner, style-weighted scorer and MixScript
   candidate explanations with gain/effect automation.
 - Deterministic two-track WAV/FLAC renderer using Signalsmith Stretch, EQ, filters,
