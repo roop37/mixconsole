@@ -450,3 +450,112 @@ def bench_transitions_command(
 
     result = run_transitions(quick=quick)
     _report(write_result(result, out), None)
+
+
+@bench_app.command("corpus")
+def bench_corpus_command(
+    limit: Annotated[int | None, typer.Option(min=1, help="Run only the first N pairs.")] = None,
+    quick: Annotated[bool, typer.Option(help="Smoke run: 3 pairs.")] = False,
+    systems: Annotated[
+        str,
+        typer.Option(help="Comma list of linear6,trim_eqpower,smooth,auto,club,automix_engine."),
+    ] = "linear6,trim_eqpower,smooth,auto,club",
+    budget_minutes: Annotated[
+        float | None, typer.Option(help="Stop starting new pairs after this many minutes.")
+    ] = None,
+    fetch: Annotated[bool, typer.Option(help="Fetch the CC audio into the cache first.")] = False,
+    pairs_file: Annotated[
+        Path | None, typer.Option("--pairs", help="Alternative pairs.yaml.")
+    ] = None,
+    excerpts: Annotated[
+        Path | None, typer.Option(help="Where to write listening excerpts (default: cache).")
+    ] = None,
+    out: Annotated[Path, typer.Option(help="Results directory.")] = BENCH_OUT,
+) -> None:
+    """Render every corpus pair with every system; write results, LATEST.md and listen input."""
+    from mixconsole.bench import corpus as bc
+    from mixconsole.bench.results import write_result
+
+    chosen = tuple(item.strip() for item in systems.split(",") if item.strip())
+    unknown = set(chosen) - {*bc.SYSTEMS, *bc.EXTERNAL}
+    if unknown or not chosen:
+        raise typer.BadParameter(f"unknown systems: {sorted(unknown)}")
+    manifest = bc.load_corpus(pairs_file or bc.PAIRS)
+    audio = bc.corpus_audio_dir()
+    if fetch:
+        with console.status("fetching CC corpus"):
+            failures = bc.fetch_corpus(manifest, audio)
+        for failure in failures:
+            typer.echo(f"Fetch failed {failure}", err=True)
+    folder = excerpts or bc.cache_root() / "corpus" / "excerpts"
+    result, rows = bc.run_corpus(
+        manifest,
+        audio,
+        systems=chosen,
+        limit=3 if quick and limit is None else limit,
+        budget_minutes=budget_minutes,
+        excerpts=folder,
+        log=typer.echo,
+    )
+    path = write_result(result, out)
+    rows_path = bc.write_rows(
+        out / "rows" / path.name.replace("-corpus-", "-corpus-rows-"), manifest, rows
+    )
+    typer.echo(f"Listening input: {bc.listen_input(manifest, rows, folder, chosen)}")
+    typer.echo(f"Rows: {rows_path}")
+    _report(path, None)
+
+
+listen_app = typer.Typer(help="Offline blind listening kit (A/B + MUSHRA-lite) and its results.")
+app.add_typer(listen_app, name="listen")
+
+
+@listen_app.command("build")
+def listen_build_command(
+    out: Annotated[Path, typer.Option("-o", help="Kit folder to create.")],
+    input_json: Annotated[
+        Path | None, typer.Option("--input", help="listen-input.json written by bench corpus.")
+    ] = None,
+    synthetic: Annotated[bool, typer.Option(help="Use tiny synthetic clips (demo).")] = False,
+    challenger: Annotated[str, typer.Option(help="System compared against all others.")] = "auto",
+    seed: Annotated[int, typer.Option(help="Seed for tokens and A/B sides.")] = 2026,
+    embed: Annotated[bool, typer.Option(help="Embed audio as data URIs (one HTML file).")] = False,
+) -> None:
+    """Create a self-contained local page with blind A/B pairs and a MUSHRA-lite rating page."""
+    from mixconsole.listen import build_kit, synthetic_input
+
+    try:
+        if synthetic:
+            input_json = synthetic_input(out / "_synthetic")
+            challenger = "trim_eqpower" if challenger == "auto" else challenger
+        if input_json is None:
+            from mixconsole.bench.corpus import cache_root
+
+            input_json = cache_root() / "corpus" / "excerpts" / "listen-input.json"
+        page = build_kit(input_json, out, challenger=challenger, seed=seed, embed=embed)
+    except (ValueError, OSError) as exc:
+        typer.echo(f"Listen build failed: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"{page}\nSave raters' vote files into {out / 'votes'} (or pass them to results).")
+
+
+@listen_app.command("results")
+def listen_results_command(
+    kit: Annotated[Path, typer.Argument(help="Kit folder (holds key.json).")],
+    votes: Annotated[list[Path] | None, typer.Argument(help="Vote JSON files.")] = None,
+    screen: Annotated[
+        bool, typer.Option(help="Drop raters failing the hidden-reference check.")
+    ] = True,
+) -> None:
+    """Win rates and MUSHRA-lite means with bootstrap confidence intervals."""
+    from mixconsole.listen.stats import render_markdown, results_for_kit
+
+    try:
+        result = results_for_kit(kit, votes, screen=screen)
+    except (ValueError, OSError, KeyError) as exc:
+        typer.echo(f"Listen results failed: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+    (kit / "results.json").write_text(result.model_dump_json(indent=2) + "\n", encoding="utf-8")
+    markdown = render_markdown(result)
+    (kit / "results.md").write_text(markdown, encoding="utf-8")
+    typer.echo(markdown)

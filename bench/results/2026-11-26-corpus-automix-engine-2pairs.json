@@ -1,0 +1,66 @@
+{
+  "version": "bench-result/v1",
+  "kind": "corpus",
+  "created": "2026-11-26T00:10:00Z",
+  "git_sha": "07ca659",
+  "mixconsole": "0.0.1",
+  "machine": {
+    "os": "Darwin 27.2.0",
+    "machine": "arm64",
+    "processor": "Apple M4",
+    "cpu_count": 10,
+    "ram_bytes": 17179869184,
+    "python": "3.12.16",
+    "packages": {
+      "numpy": "2.5.5",
+      "scipy": "1.18.1",
+      "librosa": "1.0.1",
+      "soundfile": "0.14.0",
+      "pyloudnorm": "0.2.0",
+      "torch": "2.15.0",
+      "beat-this": "1.1.0"
+    }
+  },
+  "backends": {},
+  "parameters": {
+    "pairs": 2,
+    "systems": "auto,automix_engine",
+    "excerpt_seconds": 40.0
+  },
+  "metrics": {
+    "auto_pairs": 2.0,
+    "auto_error_rate": 0.0,
+    "auto_pass_rate": 1.0,
+    "auto_drift_ms": 0.18140589569160998,
+    "auto_drift_ms_n": 1.0,
+    "auto_dip_lu": 0.3873201166269702,
+    "auto_dip_lu_n": 2.0,
+    "auto_bump_lu": 0.3839107191348994,
+    "auto_bump_lu_n": 2.0,
+    "auto_true_peak_dbtp": -1.0500006149425984,
+    "auto_true_peak_dbtp_n": 2.0,
+    "auto_clicks": 0.0,
+    "auto_clicks_n": 2.0,
+    "auto_low_overlap_bars": 0.024903473159213284,
+    "auto_low_overlap_bars_n": 2.0,
+    "auto_seconds": 35.95415158299147,
+    "auto_seconds_n": 2.0,
+    "auto_fallback_rate": 0.0,
+    "automix_engine_pairs": 2.0,
+    "automix_engine_error_rate": 0.0,
+    "automix_engine_pass_rate": 1.0,
+    "automix_engine_dip_lu": 0.647181492085612,
+    "automix_engine_dip_lu_n": 2.0,
+    "automix_engine_bump_lu": 0.0,
+    "automix_engine_bump_lu_n": 2.0,
+    "automix_engine_true_peak_dbtp": -0.9944725507361751,
+    "automix_engine_true_peak_dbtp_n": 2.0,
+    "automix_engine_clicks": 0.0,
+    "automix_engine_clicks_n": 2.0,
+    "automix_engine_seconds": 173.65286893749726,
+    "automix_engine_seconds_n": 2.0
+  },
+  "notes": [
+    "Pairs run (2): edm_lets_bounce_clone, edm_path_lucidity"
+  ]
+}

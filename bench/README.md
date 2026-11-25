@@ -15,4 +15,8 @@ Install the optional `neural` extra, run `mixconsole models fetch beat_this`, th
 pass `--beats beat_this` to compare backends. Other public dataset manifests use
 local audio and annotations supplied by the user.
 
+`mixconsole bench corpus` runs the 36-pair CC transition corpus (`bench/pairs.yaml`) against the
+baselines and MixConsole styles; `mixconsole listen build|results` is the offline listening
+kit. Audio is fetched into the ignored cache and never committed.
+
 No audio or model weights are stored here. See [ROADMAP.md](../ROADMAP.md).

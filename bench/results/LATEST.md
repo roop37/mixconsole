@@ -176,6 +176,32 @@ Machine: arm, 10 CPUs, 16 GiB, Darwin 27.2.0, Python 3.12.16
 - Swing adds seeded timing jitter up to 10 ms.
 - Acc1/Acc2 use the ±4 % MIREX tolerance.
 
+## corpus (librosa) — 2026-11-26T00:10:00Z — 07ca659
+
+Machine: Apple M4, 10 CPUs, 16 GiB, Darwin 27.2.0, Python 3.12.16
+
+| system | pairs | pass rate | failed | fallback | drift ms | dip LU | bump LU | peak dBTP | low overlap bars | vocal overlap s | bass overlap bars | clicks | seconds |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| auto | 2 | 100% | 0% | 0% | 0.18 | 0.39 | 0.38 | -1.05 | 0.02 | n/a | n/a | 0.0 | 36.0 |
+| automix_engine | 2 | 100% | 0% | n/a | n/a | 0.65 | 0.00 | -0.99 | n/a | n/a | n/a | 0.0 | 173.7 |
+
+- Pairs run (2): edm_lets_bounce_clone, edm_path_lucidity
+
+## corpus (librosa) — 2026-11-25T22:03:11Z — 07ca659
+
+Machine: Apple M4, 10 CPUs, 16 GiB, Darwin 27.2.0, Python 3.12.16
+
+| system | pairs | pass rate | failed | fallback | drift ms | dip LU | bump LU | peak dBTP | low overlap bars | vocal overlap s | bass overlap bars | clicks | seconds |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| linear6 | 8 | 0% | 0% | n/a | n/a | 3.57 | 0.48 | -0.02 | 0.08 | n/a | n/a | 0.1 | 1.3 |
+| trim_eqpower | 8 | 0% | 0% | n/a | n/a | 1.29 | 1.45 | 0.10 | 0.16 | n/a | n/a | 0.0 | 1.0 |
+| smooth | 8 | 100% | 0% | 0% | n/a | 0.22 | 0.56 | -1.05 | 0.12 | n/a | n/a | 0.0 | 64.6 |
+| auto | 8 | 100% | 0% | 0% | 0.94 | 0.31 | 0.35 | -1.05 | 0.13 | n/a | n/a | 0.0 | 62.7 |
+| club | 8 | 100% | 0% | 0% | 0.95 | 0.31 | 0.25 | -1.05 | 0.19 | 0.00 | 0.00 | 0.0 | 57.5 |
+
+- Pairs run (8): edm_lets_bounce_clone, edm_path_lucidity, hiphop_final_chapter_lofi, pop_little_further_cyberia, rock_justified_joan, rb_soul_agent_happy_soul, afro_afrobeast_log_drum, afro_sun_still_afrobeast
+- Not run (28): indian_shiva_jadugar, acoustic_guitars, cross_pop_to_afro, cross_rb_to_hiphop, edm_clone_progressive, edm_djdance_lets_bounce, hiphop_unwind_final_chapter, pop_dance_dance_little_further, rock_punk_razor, rb_happy_soul_bad_way, afro_log_drum_hot_amapiano, indian_jadugar_patni, indian_mahamrityunjaya_indian_music, cross_edm_to_pop, cross_rock_to_acoustic, cross_indian_to_edm, edm_progressive_djdance, hiphop_free99_unwind, pop_funky_dance_dance, rock_escape_it_is, rock_rnr_justified, rb_bad_way_soul_agent, afro_hot_amapiano_afrobeast, indian_patni_krishna, acoustic_open_up_guitar, cross_hiphop_to_rb, cross_afro_to_edm, cross_acoustic_to_pop
+
 ## dataset cc_sanity (beat_this) — 2026-11-21T02:13:02Z — nogit
 
 Machine: arm, 10 CPUs, 16 GiB, Darwin 27.2.0, Python 3.12.16

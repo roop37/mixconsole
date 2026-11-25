@@ -230,3 +230,8 @@ Dataset manifests describe annotation sources and separate audio rights; they ar
 not dependencies or redistributed datasets. No audio, model weights, NATTEN or
 madmom implementation is distributed. Key profiles are published numeric parameters
 and an original triadic profile, not copied code or model weights.
+- **automix-engine** (optional external benchmark baseline, M4): LGPL-2.1,
+  [VertexSelection/automix-engine](https://github.com/VertexSelection/automix-engine). Never a
+  dependency: `scripts/setup_automix_engine.sh` clones it into the ignored cache with its own
+  venv and `mixconsole bench corpus --systems ...,automix_engine` runs it only as a separate
+  process. Nothing is imported, vendored or redistributed.

@@ -66,6 +66,7 @@ select = ["E", "F", "I", "UP", "B", "SIM", "RUF", "C4", "PT", "PERF", "NPY", "PI
 [tool.ruff.lint.per-file-ignores]
 "scripts/*.py" = ["T201"]
 "src/mixconsole/cli.py" = ["T201"]
+"src/mixconsole/listen/page.py" = ["E501"]
 
 [tool.pyright]
 include = ["src", "scripts/gen_schema.py"]

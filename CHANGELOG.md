@@ -4,6 +4,16 @@
 
 ### Added
 
+- M4 transition corpus (`bench/pairs.yaml`: 37 CC0/CC-BY tracks, 36 pairs, licence and
+  attribution per track, licence re-verified on the track page before download) and
+  `mixconsole bench corpus`: plain 6 s crossfade, trim + equal-power crossfade and MixConsole
+  `smooth`/`auto`/`club` on every pair with seam metrics, per-system table in `LATEST.md`
+  (unmeasured metrics print `n/a`), and optional automix-engine run as an external process
+  (`scripts/setup_automix_engine.sh`, own venv in the cache, never imported or vendored).
+- `mixconsole listen build` / `listen results`: offline blind A/B + MUSHRA-lite page (hidden
+  reference, hard-cut anchor, salted audio tokens, votes saved as local JSON, no network) and
+  win rates / means with seeded bootstrap CIs and hidden-reference rater screening.
+
 - M3 optional `stems` extra (Demucs htdemucs, MIT, checksum-pinned weights via
   `mixconsole models fetch htdemucs`), windowed exit/entry stem separation cached per
   PCM hash/window/model on CPU or Apple MPS, and residual-folded stems that re-sum exactly.

@@ -5,7 +5,8 @@
         "perf",
         "accuracy",
         "dataset",
-        "transitions"
+        "transitions",
+        "corpus"
       ],
       "type": "string"
     },

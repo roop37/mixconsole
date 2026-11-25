@@ -29,7 +29,7 @@ class Machine(BaseModel):
     packages: dict[str, str]
 
 
-type BenchKind = Literal["perf", "accuracy", "dataset", "transitions"]
+type BenchKind = Literal["perf", "accuracy", "dataset", "transitions", "corpus"]
 
 
 class BenchResult(BaseModel):
@@ -179,6 +179,39 @@ def compare(old: BenchResult, new: BenchResult, threshold: float = 0.2) -> list[
     return lines
 
 
+CORPUS_COLUMNS = (
+    ("pairs", "pairs", "{:.0f}"),
+    ("pass_rate", "pass rate", "{:.0%}"),
+    ("error_rate", "failed", "{:.0%}"),
+    ("fallback_rate", "fallback", "{:.0%}"),
+    ("drift_ms", "drift ms", "{:.2f}"),
+    ("dip_lu", "dip LU", "{:.2f}"),
+    ("bump_lu", "bump LU", "{:.2f}"),
+    ("true_peak_dbtp", "peak dBTP", "{:.2f}"),
+    ("low_overlap_bars", "low overlap bars", "{:.2f}"),
+    ("vocal_overlap_seconds", "vocal overlap s", "{:.2f}"),
+    ("bass_overlap_bars", "bass overlap bars", "{:.2f}"),
+    ("clicks", "clicks", "{:.1f}"),
+    ("seconds", "seconds", "{:.1f}"),
+)
+
+
+def corpus_table(result: BenchResult) -> list[str]:
+    """One row per system; a measure that was never measured prints ``n/a``, never 0."""
+    systems = str(result.parameters.get("systems", "")).split(",")
+    lines = [
+        "| system | " + " | ".join(label for _, label, _ in CORPUS_COLUMNS) + " |",
+        "|---" * (len(CORPUS_COLUMNS) + 1) + "|",
+    ]
+    for system in filter(None, systems):
+        cells: list[str] = []
+        for measure, _, fmt in CORPUS_COLUMNS:
+            value = result.metrics.get(f"{system}_{measure}")
+            cells.append("n/a" if value is None else fmt.format(value))
+        lines.append(f"| {system} | " + " | ".join(cells) + " |")
+    return lines
+
+
 def write_latest(directory: Path) -> Path:
     """Regenerate LATEST.md from the newest result of each kind and beat backend."""
     results = load_results(directory)
@@ -189,17 +222,19 @@ def write_latest(directory: Path) -> Path:
                 r.kind,
                 str(r.parameters.get("dataset", "")),
                 str(r.parameters.get("beats", "librosa")),
+                str(r.parameters.get("systems", "")),
             )
             for r in results
         }
     )
-    for kind, dataset, beats in groups:
+    for kind, dataset, beats, systems in groups:
         runs = [
             r
             for r in results
             if r.kind == kind
             and str(r.parameters.get("dataset", "")) == dataset
             and str(r.parameters.get("beats", "librosa")) == beats
+            and str(r.parameters.get("systems", "")) == systems
         ]
         if not runs:
             continue
@@ -213,15 +248,19 @@ def write_latest(directory: Path) -> Path:
                 f"Python {r.machine.python}"
             ),
             "",
-            "| metric | value | budget |",
-            "|---|---|---|",
         ]
-        for name, value in sorted(r.metrics.items()):
-            budget = BUDGETS.get(name)
-            mark = (
-                "" if budget is None else (f"≤ {budget} ✓" if value <= budget else f"≤ {budget} ✗")
-            )
-            lines.append(f"| {name} | {value:.4g} | {mark} |")
+        if r.kind == "corpus":
+            lines += corpus_table(r)
+        else:
+            lines += ["| metric | value | budget |", "|---|---|---|"]
+            for name, value in sorted(r.metrics.items()):
+                budget = BUDGETS.get(name)
+                mark = (
+                    ""
+                    if budget is None
+                    else (f"≤ {budget} ✓" if value <= budget else f"≤ {budget} ✗")
+                )
+                lines.append(f"| {name} | {value:.4g} | {mark} |")
         if r.notes:
             lines += ["", *[f"- {note}" for note in r.notes]]
         lines.append("")

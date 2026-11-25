@@ -3,7 +3,7 @@
 The open, inspectable AutoMix for your own files. A local-first engine for automatic
 DJ transitions, with editable, reproducible plans that explain each decision.
 
-**Status: pre-alpha — M3 stems and vocals.** Analyze local tracks, rank transition
+**Status: pre-alpha — M4 bench and listening kit.** Analyze local tracks, rank transition
 candidates, render a MixScript v1.1 and inspect a local HTML report. Benchmarks:
 [bench/results/LATEST.md](bench/results/LATEST.md). The console UI is a later milestone.
 
@@ -70,6 +70,12 @@ folder containing `plan.mixscript.json`, `report.json`, `report.html` and three
 fallback. `--style smooth|club|auto`, `--candidates N`, `--report-dir DIR` and
 `--format wav|flac` control the result. `mixconsole plan` writes a shareable plan
 without audio; `mixconsole render` checks canonical PCM hashes before replaying it.
+`mixconsole bench corpus` renders every pair of the CC corpus (`bench/pairs.yaml`) with two
+crossfade baselines and MixConsole `smooth`/`auto`/`club` (`--fetch` downloads the audio into
+the cache, `--limit N`/`--quick`/`--budget-minutes` bound a run). `mixconsole listen build`
+makes an offline blind A/B + MUSHRA-lite page from those excerpts and `mixconsole listen
+results` turns the saved vote files into win rates with bootstrap CIs; see
+[planning/M4-bench.md](planning/M4-bench.md).
 `mixconsole bench transitions` runs the seeded synthetic pair suite with a plain
 six-second linear crossfade baseline. No benchmark audio is committed.
 
