@@ -2,7 +2,9 @@
 """Offline HTML report: local audio, inline waveform/automation SVG and explanations."""
 
 import html
+import os
 from pathlib import Path
+from urllib.parse import quote
 
 import numpy as np
 
@@ -18,7 +20,7 @@ def _line(seconds: float, duration: float, color: str, opacity: float, width: fl
     )
 
 
-def _waveform(analysis: TrackAnalysis, cue: float) -> str:
+def _waveform(analysis: TrackAnalysis, cue: float | None = None) -> str:
     values = analysis.arrays.get("bar_energy")
     if values is None or len(values) == 0:
         values = np.ones((1, 1))
@@ -38,7 +40,7 @@ def _waveform(analysis: TrackAnalysis, cue: float) -> str:
     sections = "".join(
         _line(section.start, analysis.duration, "#ba78e0", 0.8, 2) for section in analysis.sections
     )
-    chosen = _line(cue, analysis.duration, "#f35d59", 1, 3)
+    chosen = _line(cue, analysis.duration, "#f35d59", 1, 3) if cue is not None else ""
     return (
         '<svg viewBox="0 0 800 100" role="img" '
         'aria-label="Waveform with beat, bar, phrase, section and cue markers">'
@@ -52,20 +54,44 @@ def _automation(lanes: list[AutomationLane]) -> str:
     last = max(point.beat for lane in lanes for point in lane.points) or 1
     paths: list[str] = []
     for lane in lanes:
+        values = [point.value for point in lane.points]
+        low, high = min(values), max(values)
+        span = max(high - low, 1e-9)
         points = " ".join(
-            f"{800 * point.beat / last:.2f},{100 - min(1, max(0, point.value)) * 95:.2f}"
+            f"{800 * point.beat / last:.2f},{95 - (point.value - low) / span * 90:.2f}"
             for point in lane.points
         )
         color = "#62b6e8" if lane.target.track == "deck_a" else "#f6b463"
+        label = f"{lane.target.track} {lane.parameter}: {low:g} to {high:g}"
         paths.append(
             f'<polyline points="{points}" fill="none" stroke="{color}" '
-            f'stroke-width="3"><title>{html.escape(lane.id or lane.parameter)}</title></polyline>'
+            f'stroke-width="3"><title>{html.escape(label)}</title></polyline>'
         )
     return (
         '<svg viewBox="0 0 800 100" role="img" aria-label="Gain automation curves">'
         + "".join(paths)
         + "</svg>"
     )
+
+
+def render_analysis_html(analysis: TrackAnalysis, audio_path: Path, html_path: Path) -> str:
+    """Standalone analysis viewer with local playback and waveform seeking."""
+    relative = os.path.relpath(audio_path.resolve(), html_path.resolve().parent)
+    source = html.escape(quote(relative, safe="/"), quote=True)
+    loudness = analysis.arrays.get("short_term_lufs")
+    curve = ""
+    if loudness is not None and len(loudness):
+        values = np.clip(np.asarray(loudness), -60, 0)
+        # At most 800 plotted points, with a stable stride for long tracks.
+        stride = max(1, (len(values) + 799) // 800)
+        curve = " ".join(
+            f"{800 * i * analysis.loudness.hop_seconds / analysis.duration:.2f},"
+            f"{95 - (value + 60) * 1.5:.2f}"
+            for i, value in enumerate(values)
+            if i % stride == 0
+        )
+    title = html.escape(Path(analysis.file).name)
+    return f"""<!doctype html><html lang="en"><meta charset="utf-8"><title>{title} · MixConsole analysis</title><style>body{{font:16px system-ui;max-width:1000px;margin:auto;padding:24px;background:#101723;color:#eee}}svg{{width:100%;background:#1b2637}}#wave{{cursor:pointer}}audio{{width:100%}}</style><h1>{title}</h1><p>{analysis.duration:.1f} s · {analysis.global_bpm or 0:.1f} BPM · {len(analysis.sections)} sections</p><p>Click the waveform to seek. Markers: beat (gray), bar (blue), phrase (amber), section (purple).</p><div id="wave">{_waveform(analysis)}</div><audio id="player" controls preload="metadata" src="{source}"></audio><h2>Short-term loudness (LUFS)</h2><svg viewBox="0 0 800 100" role="img" aria-label="Short-term LUFS from -60 to 0"><polyline points="{curve}" fill="none" stroke="#65d5b4" stroke-width="2"/></svg><script>document.getElementById('wave').addEventListener('click', function(event) {{ const svg = this.querySelector('svg'); const bounds = svg.getBoundingClientRect(); const position = Math.max(0, Math.min(1, (event.clientX - bounds.left) / bounds.width)); const player = document.getElementById('player'); player.currentTime = position * {analysis.duration:.9f}; }});</script></html>"""
 
 
 def render_html(

@@ -35,6 +35,26 @@ def _pair(root: Path, bpm_a: float = 120, bpm_b: float = 120) -> tuple[Path, Pat
     return paths
 
 
+def test_mix_smoke(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("MIXCONSOLE_CACHE_DIR", str(tmp_path / "cache"))
+    a, b = tmp_path / "a.wav", tmp_path / "b.wav"
+    for path in (a, b):
+        pcm, _ = generate_track(bpm=120, bars=4, seed=4)
+        write_audio(path, pcm)
+    result = mix_pair(a, b, out=tmp_path / "mix.wav", report_dir=tmp_path / "report", candidates=1)
+    assert result.metrics is not None
+    assert result.metrics.passed
+    assert result.paths["audio"].exists()
+    assert result.paths["report_html"].exists()
+    page = result.paths["report_html"].read_text()
+    assert "<svg" in page
+    assert "Score breakdown" in page
+    assert "Pruned proposals" in page
+    assert "<audio" in page
+    assert "https://" not in page
+
+
+@pytest.mark.slow
 def test_mix_round_trip_and_three_previews(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("MIXCONSOLE_CACHE_DIR", str(tmp_path / "cache"))
     a, b = _pair(tmp_path)
@@ -85,6 +105,30 @@ def test_plan_locks_and_no_sync(tmp_path: Path, monkeypatch: pytest.MonkeyPatch)
     assert sum(weights()["auto"].values()) == pytest.approx(1)
 
 
+def test_auto_and_club_prefer_phrase_length_when_other_features_match(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from dataclasses import replace
+
+    from mixconsole.score.heuristic import score
+
+    monkeypatch.setenv("MIXCONSOLE_CACHE_DIR", str(tmp_path / "cache"))
+    a, b = _pair(tmp_path)
+    left = analyze(a, cache_dir=tmp_path / "cache")
+    right = analyze(b, cache_dir=tmp_path / "cache")
+    candidate = plan_pair(left, right, Settings()).candidates[0]
+    for style in ("auto", "club"):
+        scores = {
+            bars: score(replace(candidate, length_bars=bars), left, right, style)["length_fit"]
+            for bars in (4, 8, 16)
+        }
+        assert scores[8] > scores[4]
+        if style == "club":
+            assert scores[16] > scores[4]
+        else:
+            assert scores[8] > scores[16]
+
+
 def test_dsp_curve_eq_stretch_filters_and_echo() -> None:
     n = SAMPLE_RATE // 2
     t = np.arange(n, dtype=np.float32) / SAMPLE_RATE
@@ -113,6 +157,7 @@ def test_dsp_curve_eq_stretch_filters_and_echo() -> None:
     assert metric.as_dict()["reason"]
 
 
+@pytest.mark.slow
 def test_beat_warp_and_audio_derived_drift(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     from mixconsole.render.graph import RenderInspection
     from mixconsole.service import _candidate_script
@@ -212,12 +257,28 @@ def test_transition_benchmark_result_shape(monkeypatch: pytest.MonkeyPatch) -> N
 
     def fake_mix(*_args: object, **_kwargs: object) -> SimpleNamespace:
         metric = SeamMetrics(0.0, 0.2, 0.0, -2.0, 0, 0.0, True, "passed")
-        script = SimpleNamespace(transitions=[SimpleNamespace(family="trim_crossfade")])
+        script = SimpleNamespace(
+            transitions=[SimpleNamespace(family="trim_crossfade", length_bars=4)]
+        )
         return SimpleNamespace(mixscript=script, metrics=metric)
 
     monkeypatch.setattr(transitions, "mix_pair", fake_mix)
+    monkeypatch.setattr(
+        transitions,
+        "_baseline",
+        lambda *_args: {"pass_rate": 0.5, "drift_ms": 0.0, "dip_lu": 1.6},
+    )
     result = transitions.run_transitions(quick=True)
     assert result.kind == "transitions"
     assert result.metrics["trim_crossfade_pass_rate"] == 1.0
     assert "baseline_6s_linear_dip_lu" in result.metrics
     assert len(result.notes) == 2
+
+
+@pytest.mark.slow
+def test_quick_transition_benchmark_end_to_end() -> None:
+    from mixconsole.bench.transitions import run_transitions
+
+    result = run_transitions(quick=True)
+    assert result.parameters["cases"] == 2
+    assert all("pass" in note for note in result.notes)

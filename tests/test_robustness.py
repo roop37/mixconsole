@@ -56,6 +56,12 @@ def test_homogeneous_track_is_one_section(tmp_path, snr):
     assert len(run(tmp_path, noisy(audio, snr)).sections) == 1
 
 
+def test_compressed_homogeneous_noisy_track_is_one_section(tmp_path):
+    audio, _ = generate_track(bpm=128, bars=32, key="F# minor", seed=3)
+    compressed = np.tanh(audio * 4).astype(np.float32)
+    assert len(run(tmp_path, noisy(compressed, 10)).sections) == 1
+
+
 @pytest.mark.parametrize("snr", [None, 20])
 def test_breakdown_and_key_change_boundaries(tmp_path, snr):
     drums, _ = generate_track(bpm=128, bars=16, key="C major", seed=3)

@@ -41,6 +41,7 @@ def _fixture(
 def _baseline(a: Path, b: Path) -> dict[str, float]:
     from mixconsole.io import load_audio
 
+    started = time.perf_counter()
     left, right = load_audio(a).samples, load_audio(b).samples
     count = min(len(left), len(right), 6 * SAMPLE_RATE)
     fade = np.linspace(0, 1, count, dtype=np.float32)[:, None]
@@ -53,7 +54,11 @@ def _baseline(a: Path, b: Path) -> dict[str, float]:
         "pass_rate": float(metric.passed),
         "drift_ms": metric.drift_ms,
         "dip_lu": metric.loudness_dip_lu,
+        "bump_lu": metric.loudness_bump_lu,
         "true_peak_dbtp": true_peak_dbtp(joined),
+        "low_overlap_bars": metric.low_overlap_bars,
+        "length_seconds": 6.0,
+        "seconds": time.perf_counter() - started,
     }
 
 
@@ -94,6 +99,12 @@ def run_transitions(*, quick: bool = False) -> BenchResult:
                 sums[family]["pass_rate"].append(float(metric.passed))
                 sums[family]["drift_ms"].append(metric.drift_ms)
                 sums[family]["dip_lu"].append(metric.loudness_dip_lu)
+                sums[family]["bump_lu"].append(metric.loudness_bump_lu)
+                sums[family]["true_peak_dbtp"].append(metric.true_peak_dbtp)
+                sums[family]["low_overlap_bars"].append(metric.low_overlap_bars)
+                sums[family]["length_bars"].append(
+                    float(result.mixscript.transitions[0].length_bars)
+                )
                 sums[family]["seconds"].append(elapsed)
                 notes.append(f"{name}: {family}, {'pass' if metric.passed else metric.reason}")
             except (ValueError, OSError, RuntimeError) as exc:

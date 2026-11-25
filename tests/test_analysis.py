@@ -307,6 +307,22 @@ def test_cli_analyze_cache(tracks, tmp_path):
     assert "Analysis failed:" in failure.output
 
 
+def test_cli_analyze_html_viewer(tracks, tmp_path):
+    source = tracks[124][0]
+    target = tmp_path / "viewer.html"
+    run = CliRunner().invoke(
+        app, ["analyze", str(source), "--html", str(target), "--cache-dir", str(tmp_path / "cache")]
+    )
+    assert run.exit_code == 0, run.output
+    page = target.read_text()
+    assert '<audio id="player"' in page
+    assert source.name in page
+    assert "Short-term loudness" in page
+    assert "currentTime" in page
+    assert 'aria-label="Waveform with beat, bar, phrase, section and cue markers"' in page
+    assert "https://" not in page
+
+
 def test_analyze_without_torch(tracks, tmp_path):
     code = """
 import importlib.abc, sys

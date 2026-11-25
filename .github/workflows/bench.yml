@@ -19,6 +19,8 @@ jobs:
       - run: uv sync --locked --dev
       - run: uv run mixconsole bench perf --durations 30,240,600 --repeat 3
       - run: uv run mixconsole bench accuracy
+      - run: uv run pytest
+      - run: uv run mixconsole bench transitions
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:

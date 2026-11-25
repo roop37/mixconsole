@@ -340,24 +340,44 @@ Machine: arm, 10 CPUs, 16 GiB, Darwin 27.2.0, Python 3.12.16
 - Synthetic input (mixconsole.testing.synth); real music may differ.
 - peak_heap_mib is Python/NumPy heap via tracemalloc, not full process RSS.
 
-## transitions (librosa) — 2026-11-21T05:26:36Z — nogit
+## transitions (librosa) — 2026-11-25T16:51:48Z — 2660e3a
 
 Machine: arm, 10 CPUs, 16 GiB, Darwin 27.2.0, Python 3.12.16
 
 | metric | value | budget |
 |---|---|---|
-| baseline_6s_linear_dip_lu | 1.597 |  |
+| baseline_6s_linear_bump_lu | 0 |  |
+| baseline_6s_linear_dip_lu | 2.14 |  |
 | baseline_6s_linear_drift_ms | 0 |  |
-| baseline_6s_linear_pass_rate | 0.5 |  |
+| baseline_6s_linear_length_seconds | 6 |  |
+| baseline_6s_linear_low_overlap_bars | 0 |  |
+| baseline_6s_linear_pass_rate | 0.1 |  |
+| baseline_6s_linear_seconds | 0.8528 |  |
 | baseline_6s_linear_true_peak_dbtp | -10.71 |  |
-| beatmatch_blend_dip_lu | 0.04758 |  |
-| beatmatch_blend_drift_ms | 0.005669 |  |
+| beatmatch_blend_bump_lu | 0.7348 |  |
+| beatmatch_blend_dip_lu | 0 |  |
+| beatmatch_blend_drift_ms | 0.007559 |  |
+| beatmatch_blend_length_bars | 8 |  |
+| beatmatch_blend_low_overlap_bars | 0 |  |
 | beatmatch_blend_pass_rate | 1 |  |
-| beatmatch_blend_seconds | 6.308 |  |
-| cut_on_downbeat_dip_lu | 0.04083 |  |
+| beatmatch_blend_seconds | 7.806 |  |
+| beatmatch_blend_true_peak_dbtp | -9.935 |  |
+| cut_on_downbeat_bump_lu | 0 |  |
+| cut_on_downbeat_dip_lu | 0.04077 |  |
 | cut_on_downbeat_drift_ms | 0 |  |
+| cut_on_downbeat_length_bars | 0 |  |
+| cut_on_downbeat_low_overlap_bars | 0 |  |
 | cut_on_downbeat_pass_rate | 1 |  |
-| cut_on_downbeat_seconds | 4.533 |  |
+| cut_on_downbeat_seconds | 5.846 |  |
+| cut_on_downbeat_true_peak_dbtp | -10.93 |  |
+| echo_out_bump_lu | 0 |  |
+| echo_out_dip_lu | 0.4419 |  |
+| echo_out_drift_ms | 0 |  |
+| echo_out_length_bars | 4 |  |
+| echo_out_low_overlap_bars | 0.3625 |  |
+| echo_out_pass_rate | 1 |  |
+| echo_out_seconds | 7.29 |  |
+| echo_out_true_peak_dbtp | -10.12 |  |
 
 - same: beatmatch_blend, pass
 - plus3: beatmatch_blend, pass
@@ -365,7 +385,7 @@ Machine: arm, 10 CPUs, 16 GiB, Darwin 27.2.0, Python 3.12.16
 - overstretch: cut_on_downbeat, pass
 - halftime: beatmatch_blend, pass
 - beatless: cut_on_downbeat, pass
-- hard_end: beatmatch_blend, pass
+- hard_end: echo_out, pass
 - fade_out: beatmatch_blend, pass
-- key_clash: beatmatch_blend, pass
+- key_clash: echo_out, pass
 - snr20: beatmatch_blend, pass

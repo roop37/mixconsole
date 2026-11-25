@@ -94,6 +94,9 @@ def validate(path: Annotated[Path, typer.Argument(help="MixScript JSON file.")])
 @app.command("analyze")
 def analyze_command(
     files: Annotated[list[Path], typer.Argument(help="Audio files to analyze.")],
+    html_output: Annotated[
+        Path | None, typer.Option("--html", help="Write a standalone local analysis viewer.")
+    ] = None,
     json_output: Annotated[
         Path | None, typer.Option("--json", help="Export JSON + sibling NPZ.")
     ] = None,
@@ -113,8 +116,11 @@ def analyze_command(
 
     from mixconsole.analysis.cache import atomic_write, save_analysis
     from mixconsole.config import load_settings
+    from mixconsole.report.html import render_analysis_html
     from mixconsole.service import ProgressEvent, analyze_tracks
 
+    if html_output is not None and len(files) != 1:
+        raise typer.BadParameter("--html requires exactly one audio file")
     settings = load_settings()
     chosen = dict(settings.backends)
     if beats:
@@ -176,6 +182,12 @@ def analyze_command(
         if json_output and len(files) > 1:
             atomic_write(
                 json_output, (json.dumps(results, indent=2, allow_nan=False) + "\n").encode()
+            )
+        if html_output is not None:
+            html_output.parent.mkdir(parents=True, exist_ok=True)
+            atomic_write(
+                html_output,
+                render_analysis_html(analyses[0], files[0], html_output).encode("utf-8"),
             )
     except (OSError, ValueError, RuntimeError) as exc:
         typer.echo(f"Analysis failed: {exc}", err=True)

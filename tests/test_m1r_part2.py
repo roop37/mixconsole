@@ -68,6 +68,7 @@ def test_degraded_track_analysis(condition, tmp_path):
         assert result.beat_confidence < 0.2
 
 
+@pytest.mark.slow
 def test_quick_accuracy_benchmark_targets():
     result = run_accuracy(quick=True)
     metrics = result.metrics
@@ -80,6 +81,13 @@ def test_quick_accuracy_benchmark_targets():
     assert metrics["beat_confidence_mean_no_percussion"] < 0.2
     if shutil.which("ffmpeg") is not None:
         assert metrics["tempo_acc2_mp3"] == 1
+
+
+def test_accuracy_benchmark_smoke(tmp_path):
+    audio, truth = generate_track(bpm=124, bars=4, seed=3)
+    result = analyze(write_audio(tmp_path / "accuracy-smoke.wav", audio), use_cache=False)
+    assert tempo_acc2(result.global_bpm, 124)
+    assert beat_f_measure(result.beats, truth["beat_times"]) >= 0.9
 
 
 def test_cc_manifest_and_cached_analysis(monkeypatch, tmp_path):

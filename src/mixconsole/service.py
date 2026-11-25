@@ -597,6 +597,18 @@ def mix_pair(
             if preview.exists():
                 summary.preview_artifact = preview.name
                 break
+    referenced = {
+        summary.preview_artifact
+        for summary in script.transitions[0].candidates
+        if summary.preview_artifact
+    }
+    for preview in folder.glob("preview-*"):
+        if (
+            preview.is_file()
+            and preview.suffix in (".wav", ".opus")
+            and preview.name not in referenced
+        ):
+            preview.unlink()
     checkpoint(progress, cancel, "report", 0.0)
     from mixconsole.mixscript import dumps_mixscript
 

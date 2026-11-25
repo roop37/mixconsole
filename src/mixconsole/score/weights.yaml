@@ -5,10 +5,10 @@ auto:
   energy_continuity: 0.12
   stretch_cost: 0.04
   section_fit: 0.08
-  length_fit: 0.08
-  wasted_audio: 0.08
+  length_fit: 0.15
+  wasted_audio: 0.06
   loudness_gap: 0.07
-  family_prior: 0.31
+  family_prior: 0.26
 smooth:
   phrase_alignment: 0.12
   key_compatibility: 0.10
@@ -25,7 +25,7 @@ club:
   energy_continuity: 0.12
   stretch_cost: 0.10
   section_fit: 0.08
-  length_fit: 0.11
-  wasted_audio: 0.06
+  length_fit: 0.18
+  wasted_audio: 0.04
   loudness_gap: 0.05
-  family_prior: 0.25
+  family_prior: 0.20

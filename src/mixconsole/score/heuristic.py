@@ -9,7 +9,7 @@ import yaml
 from mixconsole.analysis.models import TrackAnalysis
 from mixconsole.plan.candidates import Candidate, has_beat_grid
 
-SCORER_VERSION = "heuristic@2"
+SCORER_VERSION = "heuristic@3"
 
 
 @lru_cache(maxsize=1)
@@ -78,7 +78,7 @@ def score(c: Candidate, a: TrackAnalysis, b: TrackAnalysis, style: str) -> dict[
         if c.tempo_strategy in ("none", "no_sync") or not a.global_bpm or not b.global_bpm
         else max(0.0, 1 - abs(a.global_bpm - b.global_bpm) / a.global_bpm / 0.08)
     )
-    desired = 8 if style == "club" else 2 if style == "smooth" else 4
+    desired = 12 if style == "club" else 2 if style == "smooth" else 8
     length = math.exp(-abs(c.length_bars - desired) / max(desired, 1))
     wasted = max(
         0.0,

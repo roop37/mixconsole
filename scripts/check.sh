@@ -7,4 +7,4 @@ uv run ruff format --check .
 uv run pyright
 uv run python scripts/gen_schema.py --check
 uv run python scripts/third_party.py --check
-uv run pytest -m "not slow"
+uv run pytest -m "not slow" --no-cov
