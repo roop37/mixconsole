@@ -1,4 +1,3 @@
-# Console UI (M5)
+# Console UI
 
-Reserved for the local web console described in [PLAN.md](../PLAN.md).
-No UI or server is implemented in M0.
+The web console lives in [`apps/console`](../apps/console/README.md); this folder is unused.

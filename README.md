@@ -3,9 +3,22 @@
 The open, inspectable AutoMix for your own files. A local-first engine for automatic
 DJ transitions, with editable, reproducible plans that explain each decision.
 
-**Status: pre-alpha — M4.5 service + HTTP API (on top of the M4 bench and listening kit).** Analyze local tracks, rank transition
+**Status: pre-alpha — M5 web console (on top of the M4.5 HTTP API, the M4 bench and listening kit).** Analyze local tracks, rank transition
 candidates, render a MixScript v1.1 and inspect a local HTML report. Benchmarks:
-[bench/results/LATEST.md](bench/results/LATEST.md). The console UI is a later milestone.
+[bench/results/LATEST.md](bench/results/LATEST.md). The browser console is described in [docs/console.md](docs/console.md).
+
+## Console (web UI)
+
+```sh
+uv sync --dev --extra server
+corepack enable && pnpm install && pnpm --dir apps/console build   # once, needs Node 20+
+uv run mixconsole serve --ui          # prints http://127.0.0.1:8765/?token=...  (open that URL)
+```
+
+Two decks with waveform and analysis lanes, candidate cards with verification status, A/B
+audition, draggable cues that snap to phrases and downbeats, automation editing, undo/redo,
+WAV/FLAC/MixScript export, a library view and a blind listening page. Everything stays on
+127.0.0.1. See [docs/console.md](docs/console.md).
 
 ## Quickstart
 
@@ -35,7 +48,7 @@ packages. This source routing does not apply to pip installs of neural extras.
 The optional `stems` extra adds Demucs (MIT) for the stem families (Apple Silicon, Linux
 and Windows; not Intel macOS). Fetch the checksum-pinned `htdemucs` weights once with
 `uv sync --extra stems && uv run mixconsole models fetch htdemucs`; they live in the
-ignored cache, never in the repository. The `ui` extra remains a placeholder.
+ignored cache, never in the repository. The `ui` extra is the same as `server`: `mixconsole serve --ui` also serves the built console.
 
 <!-- test -->
 ```python

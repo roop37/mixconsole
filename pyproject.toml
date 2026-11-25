@@ -73,6 +73,7 @@ select = ["E", "F", "I", "UP", "B", "SIM", "RUF", "C4", "PT", "PERF", "NPY", "PI
 "tests/test_api.py" = ["PT018"]
 "tests/test_store.py" = ["PT018"]
 "tests/test_server_cli.py" = ["PT018"]
+"tests/test_ui_mount.py" = ["PT018"]
 "src/mixconsole/cli.py" = ["T201"]
 "src/mixconsole/listen/page.py" = ["E501"]
 

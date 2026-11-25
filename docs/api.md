@@ -29,6 +29,15 @@ Default data dir: the platform user-data folder (`MIXCONSOLE_DATA_DIR`, `--data-
 A project folder is portable: database references are project-relative; only the original
 audio paths are absolute (a track whose file moved reports `path_exists: false`).
 
+## Uploads, stems and formats (M5)
+
+- `POST /projects/{id}/uploads?name=song.flac` takes the raw audio as the request body (the browser
+  console uses it for dropped files; at most 2 GiB, audio extensions only). The file is stored as
+  `artifacts/uploads/<hash16>/<name>` and added to the project; the same content is deduplicated.
+- `stems` (`off` | `auto` | `on`, default: the server setting) on `plans` and `mixes` overrides the
+  `stems` setting for that job. Analysis processes keep the server setting.
+- `format` (`wav` | `flac`) on `renders` chooses the container of the rendered file.
+
 ## Jobs
 
 Long operations return `202` and a job: `analyze`, `plan`, `mix` (plan + verify + render),
@@ -62,6 +71,7 @@ parent). Re-plan with `POST .../plans` (`parent_id`, `locks`).
 
 ```text
 mixconsole serve [--host 127.0.0.1] [--port 8765] [--data-dir DIR] [--cors-origin URL]
+                 [--ui] [--ui-dir apps/console/dist]   # --ui also serves the built web console at /
 mixconsole library scan DIR [--workers N]   # batch, parallel, resumable
 mixconsole library list
 ```

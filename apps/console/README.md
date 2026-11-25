@@ -1,13 +1,23 @@
-# Console (M5 placeholder)
+# MixConsole web console
 
-The future console uses React, Vite and TypeScript in a pnpm workspace. No UI code
-or frontend dependencies are installed in M1H. M4.5 supplies the local FastAPI API,
-HTTP artifact delivery, jobs and SSE progress; all engine work goes through
-`mixconsole.service`. The UI edits versioned MixScripts and consumes analysis
-lanes and preview artifacts. It does not import or reproduce DSP logic.
+React 19 + Vite + TypeScript (strict), wavesurfer.js for waveforms, Biome, Vitest and Playwright.
+It talks only to the local `mixconsole serve` API (token in the URL once, then `sessionStorage`) and
+uses the types generated in `packages/schema-ts`; it never reproduces engine or DSP logic.
 
-Types flow from Pydantic → JSON Schema (`scripts/gen_schema.py`) → M4.5 OpenAPI →
-generated TypeScript in `packages/schema-ts`. The generator and API schema will be
-pinned and CI will reject drift before the console is implemented. Types must not
-be handwritten. Stable transition/lane/effect IDs support edits; point order is
-preserved; locks constrain replanning. See `docs/adr/0005-frontend.md`.
+```sh
+corepack enable && pnpm install                 # repo root, Node 20+
+pnpm --dir apps/console build                   # -> apps/console/dist
+uv run mixconsole serve --ui                    # serves the built app, prints the ?token= URL
+
+# development with hot reload (API on 8765)
+uv run mixconsole serve --port 8765 &
+pnpm --dir apps/console dev                     # http://127.0.0.1:5173/?token=<token>
+
+scripts/check-ui.sh            # lint, typecheck, Vitest, build, Playwright smoke (synthetic audio)
+scripts/check-ui.sh --no-e2e   # without the browser test
+```
+
+Layout: `src/api` typed client and SSE, `src/lib` pure logic (snap, MixScript edits, history,
+automation maths, report parsing, kit/votes, library sort; all unit-tested), `src/state.ts` reducer,
+`src/actions.ts` side effects, `src/components` views, `e2e` Playwright smoke.
+See [docs/console.md](../../docs/console.md).

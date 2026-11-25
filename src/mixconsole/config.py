@@ -2,6 +2,9 @@
 
 import os
 import tomllib
+from collections.abc import Generator
+from contextlib import contextmanager
+from contextvars import ContextVar
 from pathlib import Path
 from typing import Any, Literal
 
@@ -84,6 +87,26 @@ class Settings(BaseSettings):
         return env_settings, init_settings
 
 
+_OVERRIDES: ContextVar[dict[str, Any] | None] = ContextVar(
+    "mixconsole_settings_overrides", default=None
+)
+
+
+@contextmanager
+def settings_override(**values: Any) -> Generator[None]:
+    """Per-call settings (e.g. a request's ``stems`` choice) for the current thread only.
+
+    ``None`` values are ignored, so callers can pass optional request fields straight through.
+    """
+    token = _OVERRIDES.set(
+        {**(_OVERRIDES.get() or {}), **{k: v for k, v in values.items() if v is not None}}
+    )
+    try:
+        yield
+    finally:
+        _OVERRIDES.reset(token)
+
+
 def load_settings(path: Path | None = None) -> Settings:
     data: dict[str, Any] = {}
     source = path or config_path()
@@ -98,4 +121,6 @@ def load_settings(path: Path | None = None) -> Settings:
     }
     if overrides:
         data["backends"] = {**data.get("backends", {}), **overrides}
-    return Settings(**data)
+    settings = Settings(**data)
+    scoped = _OVERRIDES.get()
+    return settings.model_copy(update=scoped) if scoped else settings

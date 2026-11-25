@@ -1,0 +1,35 @@
+{
+  "name": "@mixconsole/console",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "description": "MixConsole web console (React 19 + Vite); talks only to the local mixconsole server",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "test": "vitest run",
+    "e2e": "playwright test",
+    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+  },
+  "dependencies": {
+    "@mixconsole/schema-ts": "workspace:*",
+    "react": "19.2.9",
+    "react-dom": "19.2.9",
+    "wavesurfer.js": "7.12.12"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.6.9",
+    "@playwright/test": "1.65.1",
+    "@types/node": "24.19.4",
+    "@types/react": "19.3.3",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "5.2.0",
+    "typescript": "5.9.3",
+    "vite": "7.3.8",
+    "vitest": "3.2.7"
+  }
+}

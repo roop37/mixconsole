@@ -4,5 +4,5 @@
   "private": true,
   "description": "TypeScript types generated from the MixConsole OpenAPI schema (scripts/gen_api_types.py)",
   "license": "MIT",
-  "types": "src/api.d.ts"
+  "types": "src/index.d.ts"
 }

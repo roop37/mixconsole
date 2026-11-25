@@ -9,9 +9,10 @@ import asyncio
 import json
 import re
 import time
+import uuid
 from collections.abc import AsyncIterator, Sequence
 from pathlib import Path
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, Request, Response
 from fastapi.responses import FileResponse, StreamingResponse
@@ -49,6 +50,8 @@ from mixconsole.store.project import (
 from mixconsole.store.workspace import Workspace
 
 API = "/api/v1"
+AUDIO_SUFFIXES = frozenset({".wav", ".flac", ".mp3", ".m4a", ".ogg", ".opus", ".aif", ".aiff"})
+MAX_UPLOAD_BYTES = 2 * 1024**3
 _FILE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 _MEDIA = {
     ".opus": "audio/ogg",
@@ -76,6 +79,9 @@ class PairRequest(BaseModel):
     b: str = Field(description="Incoming track hash")
     style: str = "auto"
     candidates: int = Field(default=3, ge=1, le=60)
+    stems: Literal["off", "auto", "on"] | None = Field(
+        default=None, description="Stem families for this request (default: the server setting)."
+    )
 
 
 class PlanRequest(PairRequest):
@@ -85,6 +91,7 @@ class PlanRequest(PairRequest):
 
 class RenderRequest(BaseModel):
     mixscript_id: str = Field(description="Saved MixScript version to render as-is.")
+    format: Literal["wav", "flac"] = Field(default="wav", description="Audio container.")
 
 
 class MixScriptCreate(BaseModel):
@@ -128,6 +135,7 @@ def create_app(
     *,
     allowed_hosts: Sequence[str] = (),
     cors_origins: Sequence[str] = (),
+    ui_dir: Path | None = None,
 ) -> FastAPI:
     app = FastAPI(
         title="MixConsole API",
@@ -246,6 +254,50 @@ def create_app(
             except OSError as exc:
                 raise _http(422, f"cannot read {raw}: {exc}") from exc
         return [project.add_track(digest, path)[0] for digest, path in resolved]
+
+    @router.post(
+        "/projects/{project_id}/uploads",
+        status_code=201,
+        tags=["tracks"],
+        openapi_extra={
+            "requestBody": {
+                "required": True,
+                "content": {"application/octet-stream": {"schema": {"type": "string"}}},
+            }
+        },
+    )
+    async def upload_track(
+        project_id: str, request: Request, name: Annotated[str, Query(max_length=200)]
+    ) -> TrackRecord:
+        """Add a track from the raw request body (browser drop). Stored under the project."""
+        project = project_of(project_id)
+        safe = re.sub(r"[^A-Za-z0-9._-]+", "_", Path(name).name).strip("._") or "track"
+        if Path(safe).suffix.lower() not in AUDIO_SUFFIXES:
+            raise _http(422, f"unsupported audio type: {Path(safe).suffix or name}")
+        folder = project.artifacts / "uploads"
+        folder.mkdir(parents=True, exist_ok=True)
+        partial = folder / f".part-{uuid.uuid4().hex}"
+        size = 0
+        try:
+            with partial.open("wb") as stream:
+                async for chunk in request.stream():
+                    size += len(chunk)
+                    if size > MAX_UPLOAD_BYTES:
+                        raise _http(413, "upload too large")
+                    stream.write(chunk)
+            if size == 0:
+                raise _http(422, "empty upload")
+            digest = await asyncio.to_thread(file_sha256, partial)
+            # One folder per content hash keeps the original file name for display.
+            final = folder / digest[:16] / safe
+            final.parent.mkdir(exist_ok=True)
+            if final.exists():
+                partial.unlink()
+            else:
+                partial.replace(final)
+        finally:
+            partial.unlink(missing_ok=True)
+        return project.add_track(digest, final.resolve())[0]
 
     @router.get("/projects/{project_id}/tracks/{track_hash}", tags=["tracks"])
     def get_track(project_id: str, track_hash: str) -> TrackRecord:
@@ -400,7 +452,9 @@ def create_app(
         if project.mixscript(body.mixscript_id) is None:
             raise _http(404, "mixscript version not found")
         return started(
-            "render", {"project_id": project_id, "mixscript_id": body.mixscript_id}, project_id
+            "render",
+            {"project_id": project_id, "mixscript_id": body.mixscript_id, "format": body.format},
+            project_id,
         )
 
     @router.get("/projects/{project_id}/renders", tags=["renders"])
@@ -536,4 +590,10 @@ def create_app(
 
     app.include_router(open_router)
     app.include_router(router)
+    app.state.workspace = workspace
+    if ui_dir is not None:
+        from fastapi.staticfiles import StaticFiles
+
+        # Mounted last so every /api, /docs and /openapi.json route wins; the SPA uses hash routes.
+        app.mount("/", StaticFiles(directory=ui_dir, html=True), name="ui")
     return app

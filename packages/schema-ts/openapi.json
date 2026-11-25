@@ -700,6 +700,23 @@
             "title": "Candidates",
             "type": "integer"
           },
+          "stems": {
+            "anyOf": [
+              {
+                "enum": [
+                  "off",
+                  "auto",
+                  "on"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Stem families for this request (default: the server setting).",
+            "title": "Stems"
+          },
           "style": {
             "default": "auto",
             "title": "Style",
@@ -832,6 +849,23 @@
             "description": "MixScript version this re-plans.",
             "title": "Parent Id"
           },
+          "stems": {
+            "anyOf": [
+              {
+                "enum": [
+                  "off",
+                  "auto",
+                  "on"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Stem families for this request (default: the server setting).",
+            "title": "Stems"
+          },
           "style": {
             "default": "auto",
             "title": "Style",
@@ -961,6 +995,16 @@
       },
       "RenderRequest": {
         "properties": {
+          "format": {
+            "default": "wav",
+            "description": "Audio container.",
+            "enum": [
+              "wav",
+              "flac"
+            ],
+            "title": "Format",
+            "type": "string"
+          },
           "mixscript_id": {
             "description": "Saved MixScript version to render as-is.",
             "title": "Mixscript Id",
@@ -3080,6 +3124,74 @@
         "summary": "Get Waveform Dat",
         "tags": [
           "artifacts"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/uploads": {
+      "post": {
+        "description": "Add a track from the raw request body (browser drop). Stored under the project.",
+        "operationId": "upload_track",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "maxLength": 200,
+              "title": "Name",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/octet-stream": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrackRecord"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Upload Track",
+        "tags": [
+          "tracks"
         ]
       }
     },

@@ -73,9 +73,7 @@ export type LibraryStats = {
 
 export type LibraryTrack = {
   analyzed_at: number;
-  backend_versions: {
-    [key: string]: string;
-  };
+  backend_versions: Record<string, string>;
   bpm: number | null;
   camelot: string;
   duration: number;
@@ -134,6 +132,8 @@ export type PairRequest = {
   /** Incoming track hash */
   b: string;
   candidates?: number;
+  /** Stem families for this request (default: the server setting). */
+  stems?: ("off" | "auto" | "on") | null;
   style?: string;
 };
 
@@ -166,6 +166,8 @@ export type PlanRequest = {
   } | null;
   /** MixScript version this re-plans. */
   parent_id?: string | null;
+  /** Stem families for this request (default: the server setting). */
+  stems?: ("off" | "auto" | "on") | null;
   style?: string;
 };
 
@@ -195,6 +197,8 @@ export type RenderRecord = {
 };
 
 export type RenderRequest = {
+  /** Audio container. */
+  format?: "wav" | "flac";
   /** Saved MixScript version to render as-is. */
   mixscript_id: string;
 };
@@ -373,6 +377,9 @@ export interface paths {
   };
   "/api/v1/projects/{project_id}/tracks/{track_hash}/waveform.dat": {
     get: operations["get_waveform_dat"];
+  };
+  "/api/v1/projects/{project_id}/uploads": {
+    post: operations["upload_track"];
   };
   "/api/v1/system": {
     get: operations["system"];
@@ -707,6 +714,19 @@ export interface operations {
       };
       responses: {
         "200": unknown;
+        "422": HTTPValidationError;
+      };
+  };
+  "upload_track": {
+      path: {
+        "project_id": string;
+      };
+      query: {
+        "name": string;
+      };
+      requestBody: unknown;
+      responses: {
+        "201": TrackRecord;
         "422": HTTPValidationError;
       };
   };

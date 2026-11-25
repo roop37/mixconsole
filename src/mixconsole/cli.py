@@ -585,6 +585,11 @@ def serve_command(
     cors_origin: Annotated[
         list[str] | None, typer.Option("--cors-origin", help="Allow a UI dev origin (repeatable).")
     ] = None,
+    ui: Annotated[bool, typer.Option("--ui", help="Also serve the built console at /.")] = False,
+    ui_dir: Annotated[
+        Path | None,
+        typer.Option("--ui-dir", help="Built console folder (default: apps/console/dist)."),
+    ] = None,
 ) -> None:
     """Start the local HTTP API (needs the `server` extra). Prints the access token URL."""
     from mixconsole.server.auth import LOOPBACK_HOSTS
@@ -602,15 +607,28 @@ def serve_command(
         )
         raise typer.Exit(code=1) from exc
     from mixconsole.server.auth import issue_token
+    from mixconsole.server.ui import find_ui_dir
     from mixconsole.store.workspace import Workspace
 
+    built = find_ui_dir(ui_dir) if ui or ui_dir else None
+    if (ui or ui_dir) and built is None:
+        typer.echo(
+            "No built console found: run `pnpm --dir apps/console build` or pass --ui-dir.",
+            err=True,
+        )
+        raise typer.Exit(code=1)
     workspace = Workspace(data_dir)
     token = issue_token(workspace.root)
     extra_hosts = [host] if allow_remote else []
-    api = create_app(workspace, token, allowed_hosts=extra_hosts, cors_origins=cors_origin or [])
+    api = create_app(
+        workspace, token, allowed_hosts=extra_hosts, cors_origins=cors_origin or [], ui_dir=built
+    )
     typer.echo(f"MixConsole API  http://{host}:{port}/api/v1  (docs: /docs)")
     typer.echo(f"Token file      {workspace.root / 'server.token'}")
-    typer.echo(f"Open UI with    ?token={token}")
+    if built is not None:
+        typer.echo(f"Console         http://{host}:{port}/?token={token}")
+    else:
+        typer.echo(f"Open UI with    ?token={token}")
     try:
         uvicorn.run(api, host=host, port=port, log_level="warning")
     finally:

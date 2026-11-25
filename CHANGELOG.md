@@ -16,6 +16,18 @@
 
 ### Added
 
+- M5 web console (`apps/console`: React 19, Vite, TypeScript strict, wavesurfer.js, Biome, Vitest,
+  Playwright): two decks with waveform and beat/bar/phrase/section/vocal/energy lanes, zoom and
+  transport, candidate cards (family, length, score breakdown, verify status, `n/a` for unmeasured
+  metrics), A/B audition of previews and the seam, cue dragging with phrase/downbeat/beat snap,
+  family/length/lock editing with lock-aware re-plan, gain/EQ/filter automation editor, undo/redo over
+  append-only MixScript versions, WAV/FLAC/MixScript export, library view (search, BPM/key/energy
+  sort) and a blind A/B + rating page for `mixconsole listen` kits. `mixconsole serve --ui` serves the
+  built app (same origin, token via `?token=`, no external assets). Server additions for the UI:
+  `POST /projects/{id}/uploads` (browser drop), `stems` (`off`|`auto`|`on`) on plan/mix requests,
+  `format` (`wav`|`flac`) on renders. TypeScript types for MixScript v1.1 are generated into
+  `packages/schema-ts`. `scripts/check-ui.sh` and a CI `ui` job run lint, typecheck, Vitest, build
+  and the Playwright smoke.
 - M4.5 service + API: `mixconsole serve` (FastAPI, 127.0.0.1 + per-run token, Host check, SSE
   job progress, HTTP Range), 35 operations for projects, tracks, analyses, plans/MixScript
   versions (append-only, diff), renders, library and jobs; SQLite projects (`project.sqlite` +

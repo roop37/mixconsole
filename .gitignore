@@ -27,3 +27,10 @@ output/
 !tests/fixtures/*.wav
 !tests/fixtures/*.mp3
 !tests/fixtures/*.flac
+
+# Web console (pnpm)
+node_modules/
+apps/console/playwright-report/
+apps/console/test-results/
+apps/console/.vite/
+*.tsbuildinfo

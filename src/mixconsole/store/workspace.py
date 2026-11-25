@@ -9,7 +9,7 @@ from typing import Any
 
 from mixconsole.analysis.cache import load_analysis, save_analysis
 from mixconsole.analysis.models import TrackAnalysis
-from mixconsole.config import data_root, load_settings
+from mixconsole.config import data_root, load_settings, settings_override
 from mixconsole.progress import CancelToken, Progress, ProgressEvent, checkpoint
 from mixconsole.store.artifacts import ensure_peaks
 from mixconsole.store.jobs import JobManager
@@ -115,15 +115,16 @@ class Workspace:
 
         project = self._project(params)
         a, b, path_a, path_b = self._pair(project, params)
-        result = plan_pair(
-            path_a,
-            path_b,
-            style=self._style(params),
-            candidates=int(params.get("candidates", 3)),
-            locks=params.get("locks"),
-            progress=progress,
-            cancel=cancel,
-        )
+        with settings_override(stems=params.get("stems")):
+            result = plan_pair(
+                path_a,
+                path_b,
+                style=self._style(params),
+                candidates=int(params.get("candidates", 3)),
+                locks=params.get("locks"),
+                progress=progress,
+                cancel=cancel,
+            )
         version = project.add_mixscript(
             json.loads(dumps_mixscript(result.mixscript)),
             parent_id=params.get("parent_id"),
@@ -148,16 +149,17 @@ class Workspace:
         folder = project.render_dir(render_id)
         folder.mkdir(parents=True)
         try:
-            result = mix_pair(
-                path_a,
-                path_b,
-                style=self._style(params),
-                candidates=int(params.get("candidates", 3)),
-                out=folder / "mix.wav",
-                report_dir=folder,
-                progress=progress,
-                cancel=cancel,
-            )
+            with settings_override(stems=params.get("stems")):
+                result = mix_pair(
+                    path_a,
+                    path_b,
+                    style=self._style(params),
+                    candidates=int(params.get("candidates", 3)),
+                    out=folder / "mix.wav",
+                    report_dir=folder,
+                    progress=progress,
+                    cancel=cancel,
+                )
         except BaseException:
             shutil.rmtree(folder, ignore_errors=True)
             raise
@@ -222,12 +224,13 @@ class Workspace:
         render_id = uuid.uuid4().hex[:12]
         folder_out = project.render_dir(render_id)
         folder_out.mkdir(parents=True)
-        write_audio(folder_out / "mix.wav", audio)
+        name = "mix.flac" if params.get("format") == "flac" else "mix.wav"
+        write_audio(folder_out / name, audio)
         project.add_render(
             render_id,
             mixscript_id=version.id,
-            audio="mix.wav",
-            files=["mix.wav"],
+            audio=name,
+            files=[name],
             summary={"source": "saved mixscript"},
             job_id=None,
         )

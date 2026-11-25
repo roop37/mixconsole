@@ -1,0 +1,12 @@
+{
+  "name": "mixconsole-workspace",
+  "private": true,
+  "license": "MIT",
+  "packageManager": "pnpm@10.33.0",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "build": "pnpm --filter @mixconsole/console build",
+    "check": "pnpm --filter @mixconsole/console check",
+    "test": "pnpm --filter @mixconsole/console test"
+  }
+}
