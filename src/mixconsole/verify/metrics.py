@@ -14,16 +14,22 @@ from mixconsole.render.limiter import true_peak_dbtp
 
 @dataclass
 class SeamMetrics:
-    drift_ms: float
+    """Seam measurements. ``None`` means "not applicable or not measurable", never a pass.
+
+    ``drift_ms`` applies only to beatmatched seams (a beat-warp map exists);
+    ``low_overlap_bars`` needs the separated A/B contributions of an overlapping seam.
+    """
+
+    drift_ms: float | None
     loudness_dip_lu: float
     loudness_bump_lu: float
     true_peak_dbtp: float
     clicks: int
-    low_overlap_bars: float
+    low_overlap_bars: float | None
     passed: bool
     reason: str
 
-    def as_dict(self) -> dict[str, float | int | bool | str]:
+    def as_dict(self) -> dict[str, float | int | bool | str | None]:
         return vars(self).copy()
 
 
@@ -51,14 +57,16 @@ def _onset_offset(audio: Audio, frame: int) -> int | None:
     return int(np.argmax(derivative)) - radius
 
 
-def _drift(inspection: RenderInspection | None) -> float:
+def _drift(inspection: RenderInspection | None) -> float | None:
+    """Median rendered-B onset offset from the target grid (ms); None when not beatmatched
+    or when no beat attack could be measured."""
     if (
         inspection is None
         or inspection.source_b is None
         or inspection.stretched_b is None
         or not inspection.beat_warp
     ):
-        return 0.0
+        return None
     offsets: list[float] = []
     for source, target in inspection.beat_warp[1:-1]:
         before = _onset_offset(inspection.source_b, source)
@@ -67,12 +75,14 @@ def _drift(inspection: RenderInspection | None) -> float:
             # The source probe confirms a beat attack exists; phase is measured
             # from the rendered B attack against the target beat grid.
             offsets.append(abs(after) * 1000 / SAMPLE_RATE)
-    return float(np.median(offsets)) if offsets else 0.0
+    return float(np.median(offsets)) if offsets else None
 
 
-def _low_overlap(inspection: RenderInspection | None, bpm: float) -> float:
+def _low_overlap(inspection: RenderInspection | None, bpm: float) -> float | None:
+    """Longest run (bars) where both tracks' < 150 Hz energy is active; None without
+    separated contributions."""
     if inspection is None or inspection.contribution_a is None or inspection.contribution_b is None:
-        return 0.0
+        return None
     sos = butter(2, 150, btype="lowpass", fs=SAMPLE_RATE, output="sos")
     a = np.asarray(sosfilt(sos, inspection.contribution_a, axis=0), dtype=np.float32)
     b = np.asarray(sosfilt(sos, inspection.contribution_b, axis=0), dtype=np.float32)
@@ -144,9 +154,16 @@ def verify_seam(
         failures.append(f"true peak {peak:.2f} dBTP exceeds {max_peak:.2f}")
     if clicks:
         failures.append(f"{clicks} off-grid impulses")
-    if drift >= max_drift:
+    beatmatched = inspection is not None and bool(inspection.beat_warp)
+    if drift is None:
+        if beatmatched:
+            failures.append("beat-phase drift not measurable on a beatmatched seam")
+    elif drift >= max_drift:
         failures.append(f"beat-phase drift {drift:.2f} ms exceeds {max_drift:.2f}")
-    if overlap > max_low_overlap:
+    if overlap is None:
+        if overlap_frames and inspection is not None:
+            failures.append("low-band overlap not measurable on an overlapping seam")
+    elif overlap > max_low_overlap:
         failures.append(f"low-band overlap {overlap:.2f} bars exceeds {max_low_overlap:.2f}")
     return SeamMetrics(
         drift,

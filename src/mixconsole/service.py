@@ -398,6 +398,11 @@ def _encode_preview(path: Path) -> Path:
     return path
 
 
+def _fmt(value: float | None, unit: str) -> str:
+    """Render an optional measurement; None reads as "n/a" (not measured), never 0."""
+    return "n/a" if value is None else f"{value:.2f} {unit}"
+
+
 def mix_pair(
     a: str | Path,
     b: str | Path,
@@ -498,7 +503,9 @@ def mix_pair(
             not metric.passed
             and candidate.family == "beatmatch_blend"
             and metric.loudness_dip_lu > load_settings().max_loudness_dip_lu
+            and metric.drift_ms is not None
             and metric.drift_ms < load_settings().max_drift_ms
+            and metric.low_overlap_bars is not None
             and metric.low_overlap_bars <= load_settings().max_low_overlap_bars
             and metric.clicks == 0
         ):
@@ -587,7 +594,8 @@ def mix_pair(
     if explanation is not None:
         explanation.chosen_because = (
             f"Selected {chosen.family} after {len(checks)} verification checks; "
-            f"drift {measured.drift_ms:.2f} ms, loudness dip {measured.loudness_dip_lu:.2f} LU, "
+            f"drift {_fmt(measured.drift_ms, 'ms')}, "
+            f"loudness dip {measured.loudness_dip_lu:.2f} LU, "
             f"peak {measured.true_peak_dbtp:.2f} dBTP."
         )
     rendered = render_transition(audio_a.samples, audio_b.samples, script)

@@ -10,6 +10,7 @@ import numpy as np
 
 from mixconsole.bench.results import BenchResult, new_result
 from mixconsole.io import SAMPLE_RATE, write_audio
+from mixconsole.render.graph import RenderInspection
 from mixconsole.render.limiter import true_peak_dbtp
 from mixconsole.service import mix_pair
 from mixconsole.testing.synth import generate_track
@@ -38,7 +39,7 @@ def _fixture(
     write_audio(path, audio)
 
 
-def _baseline(a: Path, b: Path) -> dict[str, float]:
+def _baseline(a: Path, b: Path) -> dict[str, float | None]:
     from mixconsole.io import load_audio
 
     started = time.perf_counter()
@@ -49,7 +50,12 @@ def _baseline(a: Path, b: Path) -> dict[str, float]:
         (left[:-count], left[-count:] * (1 - fade) + right[:count] * fade, right[count:])
     )
     joined = joined.astype(np.float32)
-    metric = verify_seam(joined, len(left) - count, count, bpm=120)
+    # Separated contributions let the baseline's bass overlap be measured, not assumed 0.
+    inspection = RenderInspection(
+        contribution_a=(left[-count:] * (1 - fade)).astype(np.float32),
+        contribution_b=(right[:count] * fade).astype(np.float32),
+    )
+    metric = verify_seam(joined, len(left) - count, count, bpm=120, inspection=inspection)
     return {
         "pass_rate": float(metric.passed),
         "drift_ms": metric.drift_ms,
@@ -97,11 +103,13 @@ def run_transitions(*, quick: bool = False) -> BenchResult:
                 if metric is None:
                     raise RuntimeError("missing verification metrics")
                 sums[family]["pass_rate"].append(float(metric.passed))
-                sums[family]["drift_ms"].append(metric.drift_ms)
+                if metric.drift_ms is not None:
+                    sums[family]["drift_ms"].append(metric.drift_ms)
                 sums[family]["dip_lu"].append(metric.loudness_dip_lu)
                 sums[family]["bump_lu"].append(metric.loudness_bump_lu)
                 sums[family]["true_peak_dbtp"].append(metric.true_peak_dbtp)
-                sums[family]["low_overlap_bars"].append(metric.low_overlap_bars)
+                if metric.low_overlap_bars is not None:
+                    sums[family]["low_overlap_bars"].append(metric.low_overlap_bars)
                 sums[family]["length_bars"].append(
                     float(result.mixscript.transitions[0].length_bars)
                 )
@@ -111,7 +119,8 @@ def run_transitions(*, quick: bool = False) -> BenchResult:
                 notes.append(f"{name}: failed ({exc})")
             baseline = _baseline(a, b)
             for key, value in baseline.items():
-                sums["baseline_6s_linear"][key].append(value)
+                if value is not None:
+                    sums["baseline_6s_linear"][key].append(value)
     metrics = {
         f"{family}_{measure}": float(np.mean(values))
         for family, measurements in sums.items()
