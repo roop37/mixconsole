@@ -1,0 +1,71 @@
+{
+  "version": "bench-result/v1",
+  "kind": "accuracy",
+  "created": "2026-11-17T21:40:52Z",
+  "git_sha": "nogit",
+  "mixconsole": "0.0.1",
+  "machine": {
+    "os": "Darwin 27.2.0",
+    "machine": "arm64",
+    "processor": "Apple M4",
+    "cpu_count": 10,
+    "ram_bytes": 17179869184,
+    "python": "3.12.16",
+    "packages": {
+      "numpy": "2.5.5",
+      "scipy": "1.18.1",
+      "librosa": "1.0.1",
+      "soundfile": "0.14.0",
+      "pyloudnorm": "0.2.0"
+    }
+  },
+  "backends": {
+    "beats": "librosa@2",
+    "key": "profiles@1",
+    "loudness": "pyloudnorm@2",
+    "sections": "novelty@2",
+    "cues": "edges@1",
+    "pipeline": "analysis@2",
+    "numpy": "2.5.5",
+    "scipy": "1.18.1",
+    "librosa": "1.0.1",
+    "pyloudnorm": "0.2.0",
+    "soundfile": "0.14.0",
+    "numba": "0.68.1"
+  },
+  "parameters": {
+    "tempo_step_bpm": 2,
+    "quick": 0
+  },
+  "metrics": {
+    "tempo_acc1_clean": 1.0,
+    "tempo_acc2_clean": 1.0,
+    "beat_f_mean_clean": 1.0,
+    "beat_f_min_clean": 1.0,
+    "downbeat_f_mean_clean": 1.0,
+    "tempo_acc1_snr30": 1.0,
+    "tempo_acc2_snr30": 1.0,
+    "beat_f_mean_snr30": 1.0,
+    "beat_f_min_snr30": 1.0,
+    "downbeat_f_mean_snr30": 1.0,
+    "tempo_acc1_snr20": 1.0,
+    "tempo_acc2_snr20": 1.0,
+    "beat_f_mean_snr20": 0.9987626226664039,
+    "beat_f_min_snr20": 0.9770992366412213,
+    "downbeat_f_mean_snr20": 0.9775771103896104,
+    "tempo_acc1_snr10": 1.0,
+    "tempo_acc2_snr10": 1.0,
+    "beat_f_mean_snr10": 0.9845000566294171,
+    "beat_f_min_snr10": 0.9612403100775194,
+    "downbeat_f_mean_snr10": 0.940915854978355,
+    "meter_3_4_rate_snr20": 1.0,
+    "key_mirex_score_snr20": 0.9,
+    "key_exact_rate_snr20": 0.875,
+    "sections_homogeneous_single_rate_snr20": 1.0,
+    "sections_breakdown_exact_snr20": 1.0
+  },
+  "notes": [
+    "Synthetic signals with exact ground truth; not evidence of real-music accuracy.",
+    "SNR is white noise relative to track RMS. Acc1/Acc2 use the ±4 % MIREX tolerance."
+  ]
+}

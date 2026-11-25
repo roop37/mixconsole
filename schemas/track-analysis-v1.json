@@ -1,0 +1,503 @@
+{
+  "$defs": {
+    "ArrayRef": {
+      "additionalProperties": false,
+      "description": "Numeric float64 array in the sibling NPZ; no pickle or object arrays.",
+      "properties": {
+        "columns": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Columns",
+          "type": "array"
+        },
+        "file": {
+          "default": "analysis.npz",
+          "title": "File",
+          "type": "string"
+        },
+        "key": {
+          "title": "Key",
+          "type": "string"
+        },
+        "shape": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Shape",
+          "type": "array"
+        }
+      },
+      "required": [
+        "key",
+        "shape"
+      ],
+      "title": "ArrayRef",
+      "type": "object"
+    },
+    "Bar": {
+      "additionalProperties": false,
+      "properties": {
+        "end": {
+          "minimum": 0,
+          "title": "End",
+          "type": "number"
+        },
+        "start": {
+          "minimum": 0,
+          "title": "Start",
+          "type": "number"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ],
+      "title": "Bar",
+      "type": "object"
+    },
+    "Edges": {
+      "additionalProperties": false,
+      "properties": {
+        "fade_in": {
+          "title": "Fade In",
+          "type": "boolean"
+        },
+        "fade_out": {
+          "title": "Fade Out",
+          "type": "boolean"
+        },
+        "hard_ending": {
+          "title": "Hard Ending",
+          "type": "boolean"
+        },
+        "silence_head": {
+          "minimum": 0,
+          "title": "Silence Head",
+          "type": "number"
+        },
+        "silence_tail": {
+          "minimum": 0,
+          "title": "Silence Tail",
+          "type": "number"
+        }
+      },
+      "required": [
+        "silence_head",
+        "silence_tail",
+        "fade_in",
+        "fade_out",
+        "hard_ending"
+      ],
+      "title": "Edges",
+      "type": "object"
+    },
+    "Key": {
+      "additionalProperties": false,
+      "properties": {
+        "alternatives": {
+          "items": {
+            "$ref": "#/$defs/KeyAlternative"
+          },
+          "maxItems": 3,
+          "minItems": 3,
+          "title": "Alternatives",
+          "type": "array"
+        },
+        "camelot": {
+          "pattern": "^(?:[1-9]|1[0-2])[AB]$",
+          "title": "Camelot",
+          "type": "string"
+        },
+        "confidence": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "mode": {
+          "enum": [
+            "major",
+            "minor"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "tonic": {
+          "maximum": 11,
+          "minimum": 0,
+          "title": "Tonic",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "tonic",
+        "mode",
+        "camelot",
+        "confidence",
+        "alternatives"
+      ],
+      "title": "Key",
+      "type": "object"
+    },
+    "KeyAlternative": {
+      "additionalProperties": false,
+      "properties": {
+        "camelot": {
+          "pattern": "^(?:[1-9]|1[0-2])[AB]$",
+          "title": "Camelot",
+          "type": "string"
+        },
+        "confidence": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "mode": {
+          "enum": [
+            "major",
+            "minor"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "tonic": {
+          "maximum": 11,
+          "minimum": 0,
+          "title": "Tonic",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "tonic",
+        "mode",
+        "camelot",
+        "confidence"
+      ],
+      "title": "KeyAlternative",
+      "type": "object"
+    },
+    "Loudness": {
+      "additionalProperties": false,
+      "properties": {
+        "hop_seconds": {
+          "default": 0.1,
+          "title": "Hop Seconds",
+          "type": "number"
+        },
+        "integrated_lufs": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Integrated Lufs"
+        },
+        "short_term_lufs": {
+          "$ref": "#/$defs/ArrayRef"
+        },
+        "true_peak_dbtp": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "True Peak Dbtp"
+        },
+        "window_seconds": {
+          "default": 3.0,
+          "title": "Window Seconds",
+          "type": "number"
+        }
+      },
+      "required": [
+        "integrated_lufs",
+        "true_peak_dbtp",
+        "short_term_lufs"
+      ],
+      "title": "Loudness",
+      "type": "object"
+    },
+    "Phrase": {
+      "additionalProperties": false,
+      "properties": {
+        "confidence": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "length_bars": {
+          "enum": [
+            4,
+            8,
+            16
+          ],
+          "title": "Length Bars",
+          "type": "integer"
+        },
+        "start": {
+          "minimum": 0,
+          "title": "Start",
+          "type": "number"
+        },
+        "start_bar": {
+          "minimum": 0,
+          "title": "Start Bar",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "start",
+        "start_bar",
+        "length_bars",
+        "confidence"
+      ],
+      "title": "Phrase",
+      "type": "object"
+    },
+    "Section": {
+      "additionalProperties": false,
+      "properties": {
+        "end": {
+          "minimum": 0,
+          "title": "End",
+          "type": "number"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Label"
+        },
+        "source": {
+          "title": "Source",
+          "type": "string"
+        },
+        "start": {
+          "minimum": 0,
+          "title": "Start",
+          "type": "number"
+        }
+      },
+      "required": [
+        "start",
+        "end",
+        "source"
+      ],
+      "title": "Section",
+      "type": "object"
+    },
+    "TempoSegment": {
+      "additionalProperties": false,
+      "properties": {
+        "bpm": {
+          "exclusiveMinimum": 0,
+          "title": "Bpm",
+          "type": "number"
+        },
+        "end": {
+          "minimum": 0,
+          "title": "End",
+          "type": "number"
+        },
+        "start": {
+          "minimum": 0,
+          "title": "Start",
+          "type": "number"
+        }
+      },
+      "required": [
+        "start",
+        "end",
+        "bpm"
+      ],
+      "title": "TempoSegment",
+      "type": "object"
+    }
+  },
+  "$id": "urn:mixconsole:track-analysis:v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "analysis_seed": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Analysis Seed",
+      "type": "integer"
+    },
+    "arrays_sha256": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Arrays Sha256"
+    },
+    "backend_versions": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Backend Versions",
+      "type": "object"
+    },
+    "bar_energy": {
+      "$ref": "#/$defs/ArrayRef"
+    },
+    "bars": {
+      "items": {
+        "$ref": "#/$defs/Bar"
+      },
+      "title": "Bars",
+      "type": "array"
+    },
+    "beat_confidence": {
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Beat Confidence",
+      "type": "number"
+    },
+    "beats": {
+      "items": {
+        "minimum": 0,
+        "type": "number"
+      },
+      "title": "Beats",
+      "type": "array"
+    },
+    "downbeats": {
+      "items": {
+        "minimum": 0,
+        "type": "number"
+      },
+      "title": "Downbeats",
+      "type": "array"
+    },
+    "duration": {
+      "exclusiveMinimum": 0,
+      "title": "Duration",
+      "type": "number"
+    },
+    "edges": {
+      "$ref": "#/$defs/Edges"
+    },
+    "file": {
+      "title": "File",
+      "type": "string"
+    },
+    "file_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "File Sha256",
+      "type": "string"
+    },
+    "global_bpm": {
+      "anyOf": [
+        {
+          "exclusiveMinimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Global Bpm"
+    },
+    "key": {
+      "$ref": "#/$defs/Key"
+    },
+    "loudness": {
+      "$ref": "#/$defs/Loudness"
+    },
+    "meter": {
+      "enum": [
+        3,
+        4
+      ],
+      "title": "Meter",
+      "type": "integer"
+    },
+    "pcm_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Pcm Sha256",
+      "type": "string"
+    },
+    "phrases": {
+      "items": {
+        "$ref": "#/$defs/Phrase"
+      },
+      "title": "Phrases",
+      "type": "array"
+    },
+    "sample_rate": {
+      "exclusiveMinimum": 0,
+      "title": "Sample Rate",
+      "type": "integer"
+    },
+    "sections": {
+      "items": {
+        "$ref": "#/$defs/Section"
+      },
+      "title": "Sections",
+      "type": "array"
+    },
+    "tempo_map": {
+      "items": {
+        "$ref": "#/$defs/TempoSegment"
+      },
+      "title": "Tempo Map",
+      "type": "array"
+    },
+    "version": {
+      "const": "track-analysis/v1",
+      "default": "track-analysis/v1",
+      "title": "Version",
+      "type": "string"
+    },
+    "vocal_activity": {
+      "default": null,
+      "title": "Vocal Activity",
+      "type": "null"
+    }
+  },
+  "required": [
+    "file",
+    "file_sha256",
+    "pcm_sha256",
+    "duration",
+    "sample_rate",
+    "beats",
+    "beat_confidence",
+    "downbeats",
+    "meter",
+    "tempo_map",
+    "global_bpm",
+    "bars",
+    "phrases",
+    "sections",
+    "key",
+    "loudness",
+    "bar_energy",
+    "edges",
+    "backend_versions"
+  ],
+  "title": "TrackAnalysis",
+  "type": "object"
+}

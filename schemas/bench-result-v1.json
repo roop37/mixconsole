@@ -1,0 +1,157 @@
+{
+  "$defs": {
+    "BenchKind": {
+      "enum": [
+        "perf",
+        "accuracy",
+        "dataset",
+        "transitions"
+      ],
+      "type": "string"
+    },
+    "Machine": {
+      "additionalProperties": false,
+      "properties": {
+        "cpu_count": {
+          "title": "Cpu Count",
+          "type": "integer"
+        },
+        "machine": {
+          "title": "Machine",
+          "type": "string"
+        },
+        "os": {
+          "title": "Os",
+          "type": "string"
+        },
+        "packages": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Packages",
+          "type": "object"
+        },
+        "processor": {
+          "title": "Processor",
+          "type": "string"
+        },
+        "python": {
+          "title": "Python",
+          "type": "string"
+        },
+        "ram_bytes": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ram Bytes"
+        }
+      },
+      "required": [
+        "os",
+        "machine",
+        "processor",
+        "cpu_count",
+        "ram_bytes",
+        "python",
+        "packages"
+      ],
+      "title": "Machine",
+      "type": "object"
+    }
+  },
+  "$id": "urn:mixconsole:bench-result:v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "One benchmark run. Metrics are flat name \u2192 number maps for easy diffing.",
+  "properties": {
+    "backends": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Backends",
+      "type": "object"
+    },
+    "created": {
+      "title": "Created",
+      "type": "string"
+    },
+    "git_sha": {
+      "title": "Git Sha",
+      "type": "string"
+    },
+    "kind": {
+      "$ref": "#/$defs/BenchKind"
+    },
+    "machine": {
+      "$ref": "#/$defs/Machine"
+    },
+    "metrics": {
+      "additionalProperties": {
+        "type": "number"
+      },
+      "title": "Metrics",
+      "type": "object"
+    },
+    "mixconsole": {
+      "title": "Mixconsole",
+      "type": "string"
+    },
+    "notes": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Notes",
+      "type": "array"
+    },
+    "parameters": {
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "type": "number"
+          },
+          {
+            "type": "integer"
+          },
+          {
+            "type": "string"
+          },
+          {
+            "items": {
+              "type": "number"
+            },
+            "type": "array"
+          },
+          {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          }
+        ]
+      },
+      "title": "Parameters",
+      "type": "object"
+    },
+    "version": {
+      "const": "bench-result/v1",
+      "default": "bench-result/v1",
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "kind",
+    "created",
+    "git_sha",
+    "mixconsole",
+    "machine",
+    "metrics"
+  ],
+  "title": "BenchResult",
+  "type": "object"
+}

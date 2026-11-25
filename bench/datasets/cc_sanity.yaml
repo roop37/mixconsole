@@ -1,0 +1,15 @@
+# Track pages were checked for their per-track CC0 or CC-BY terms on 2026-11-21.
+# BPM is null unless the source itself states a tempo; null is not a tempo label.
+tracks:
+  - {id: shivas_blossom, title: "Shiva's Blossom", artist: Koi-discovery, genre: Indian / Bollywood house, license: CC0-1.0, bpm: null, source_url: "https://freemusicarchive.org/music/koi-discovery/hypercube/shiva-s-blossom/"}
+  - {id: funky_pop, title: Funky Pop, artist: HoliznaCC0, genre: synth pop, license: CC0-1.0, bpm: null, source_url: "https://freemusicarchive.org/music/holiznacc0/power-pop/funky-pop/"}
+  - {id: rock_and_roll, title: Rock and Roll, artist: Rhapsody, genre: rockabilly, license: CC0-1.0, bpm: null, source_url: "https://freemusicarchive.org/music/rhapsody/single/rock-and-roll/"}
+  - {id: punk, title: Punk, artist: HoliznaCC0, genre: punk rock, license: CC0-1.0, bpm: null, source_url: "https://freemusicarchive.org/music/holiznacc0/rock-montage/punk/"}
+  - {id: free99, title: FREE.99, artist: OutPastMidnight, genre: hip-hop vocal, license: CC0-1.0, bpm: null, source_url: "https://freemusicarchive.org/music/outpastmidnight/single/free99/"}
+  - {id: unwind, title: Unwind, artist: HoliznaCC0, genre: lo-fi hip-hop, license: CC0-1.0, bpm: null, source_url: "https://freemusicarchive.org/music/holiznacc0/kick-it-laid-back-hiphop/unwind/"}
+  - {id: path, title: Path, artist: Metre, genre: electronic dance, license: CC0-1.0, bpm: null, source_url: "https://freemusicarchive.org/music/Metre/conduit/path-1/"}
+  - {id: dj_dance, title: Dj Dance, artist: Play House, genre: house / EDM, license: CC0-1.0, bpm: null, source_url: "https://freemusicarchive.org/music/play-house/single/dj-dance/"}
+  - {id: escape, title: Escape, artist: Koi-discovery, genre: rock, license: CC0-1.0, bpm: null, source_url: "https://freemusicarchive.org/music/koi-discovery/gaz-mask/escape-3/"}
+  - {id: open_up_your_eyes, title: Open Up Your Eyes, artist: Bob A. Feldman, genre: acoustic folk, license: CC0-1.0, bpm: null, source_url: "https://freemusicarchive.org/music/bob-a-feldman-16/single/open-up-your-eyes/"}
+  - {id: lucidity, title: Lucidity, artist: Soft and Furious, genre: techno / synth pop, license: CC0-1.0, bpm: null, source_url: "https://freemusicarchive.org/music/Soft_and_Furious/Dancing_in_the_closet/Soft_and_Furious_-_Dancing_in_the_closet_-_03_Lucidity"}
+  - {id: razor_rock, title: Razor/Rock, artist: Wax Lyricist, genre: piano rock, license: CC0-1.0, bpm: null, source_url: "https://freemusicarchive.org/music/wax-lyricist/the-wax-lyricist/razorrock/"}

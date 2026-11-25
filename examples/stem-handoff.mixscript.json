@@ -1,0 +1,168 @@
+{
+  "explanation": {
+    "chosen_because": "Illustrative stem bass swap and vocal delay; requires future stem and rendering backends.",
+    "rejected_candidates": [
+      {
+        "candidate_id": "two_basses",
+        "family": "beatmatch_blend",
+        "reason": "Prefer explicit bass handoff to overlapping bass stems."
+      }
+    ]
+  },
+  "provenance": {
+    "analysis_backends": {
+      "synthetic": "1"
+    },
+    "scorer_version": "manual-example/1",
+    "seed": 7
+  },
+  "tracks": {
+    "deck_a": {
+      "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "display_name": "Synthetic A",
+      "duration": 64.0,
+      "sample_rate": 44100
+    },
+    "deck_b": {
+      "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "display_name": "Synthetic B",
+      "duration": 64.0,
+      "sample_rate": 44100
+    }
+  },
+  "transitions": [
+    {
+      "automation": [
+        {
+          "id": "transition_0_automation_0",
+          "parameter": "gain",
+          "points": [
+            {
+              "beat": 0.0,
+              "value": 1.0
+            },
+            {
+              "beat": 8.0,
+              "curve": "step",
+              "value": 0.0
+            }
+          ],
+          "target": {
+            "kind": "stem",
+            "stem": "bass",
+            "track": "deck_a"
+          }
+        },
+        {
+          "id": "transition_0_automation_1",
+          "parameter": "gain",
+          "points": [
+            {
+              "beat": 0.0,
+              "curve": "step",
+              "value": 0.0
+            },
+            {
+              "beat": 8.0,
+              "value": 1.0
+            }
+          ],
+          "target": {
+            "kind": "stem",
+            "stem": "bass",
+            "track": "deck_b"
+          }
+        },
+        {
+          "id": "transition_0_automation_2",
+          "parameter": "hpf",
+          "points": [
+            {
+              "beat": 0.0,
+              "curve": "exponential",
+              "value": 30.0
+            },
+            {
+              "beat": 16.0,
+              "value": 1200.0
+            }
+          ],
+          "target": {
+            "kind": "track",
+            "track": "deck_a"
+          }
+        },
+        {
+          "id": "transition_0_automation_3",
+          "parameter": "delay_send",
+          "points": [
+            {
+              "beat": 0.0,
+              "value": 0.0
+            },
+            {
+              "beat": 12.0,
+              "value": 0.2
+            },
+            {
+              "beat": 16.0,
+              "value": 0.0
+            }
+          ],
+          "target": {
+            "kind": "stem",
+            "stem": "vocals",
+            "track": "deck_a"
+          }
+        }
+      ],
+      "effects": [
+        {
+          "id": "transition_0_effects_0",
+          "name": "delay",
+          "params": {
+            "feedback": 0.25,
+            "time_beats": 0.5
+          },
+          "target": {
+            "kind": "stem",
+            "stem": "vocals",
+            "track": "deck_a"
+          }
+        }
+      ],
+      "entry": {
+        "beat": 0.0,
+        "seconds": 0.0
+      },
+      "exit": {
+        "beat": 112.0,
+        "seconds": 56.0
+      },
+      "family": "stem_handoff",
+      "from_track": "deck_a",
+      "id": "transition_0",
+      "key": {
+        "strategy": "none"
+      },
+      "length_bars": 4,
+      "locks": [],
+      "tempo": {
+        "reference_track": "deck_a",
+        "strategy": "meet_in_middle",
+        "tempo_map": [
+          {
+            "beat": 0.0,
+            "bpm": 120.0
+          },
+          {
+            "beat": 16.0,
+            "bpm": 124.0
+          }
+        ]
+      },
+      "to_track": "deck_b"
+    }
+  ],
+  "version": "mixscript/v1.1"
+}

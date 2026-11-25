@@ -1,0 +1,87 @@
+{
+  "version": "bench-result/v1",
+  "kind": "perf",
+  "created": "2026-11-20T20:52:32Z",
+  "git_sha": "nogit",
+  "mixconsole": "0.0.1",
+  "machine": {
+    "os": "Darwin 27.2.0",
+    "machine": "arm64",
+    "processor": "arm",
+    "cpu_count": 10,
+    "ram_bytes": 17179869184,
+    "python": "3.12.16",
+    "packages": {
+      "numpy": "2.5.5",
+      "scipy": "1.18.1",
+      "librosa": "1.0.1",
+      "soundfile": "0.14.0",
+      "pyloudnorm": "0.2.0"
+    }
+  },
+  "backends": {
+    "beats": "librosa@2",
+    "key": "profiles@1",
+    "loudness": "pyloudnorm@2",
+    "sections": "novelty@2",
+    "cues": "edges@1",
+    "pipeline": "analysis@2",
+    "numpy": "2.5.5",
+    "scipy": "1.18.1",
+    "librosa": "1.0.1",
+    "pyloudnorm": "0.2.0",
+    "soundfile": "0.14.0",
+    "numba": "0.68.1"
+  },
+  "parameters": {
+    "durations": [
+      30,
+      240,
+      600
+    ],
+    "repeat": 3,
+    "bpm": 124.0
+  },
+  "metrics": {
+    "decode_30s": 0.008888958021998405,
+    "features_30s": 0.0567762500140816,
+    "beats_30s": 0.018087125004967675,
+    "key_30s": 0.00019404198974370956,
+    "loudness_30s": 0.12383283299277537,
+    "sections_30s": 0.0003737499937415123,
+    "cues_30s": 0.003292375011369586,
+    "analyze_cold_30s": 0.2475913749949541,
+    "analyze_cache_hit_30s": 0.007932665990665555,
+    "peak_heap_mib_30s": 63.873939514160156,
+    "realtime_factor_30s": 121.16738719436975,
+    "decode_240s": 0.0808812910108827,
+    "features_240s": 0.4730470829817932,
+    "beats_240s": 0.09385679199476726,
+    "key_240s": 0.00022074999287724495,
+    "loudness_240s": 0.9590418750012759,
+    "sections_240s": 0.002485417004209012,
+    "cues_240s": 0.022690540994517505,
+    "analyze_cold_240s": 2.14216945800581,
+    "analyze_cache_hit_240s": 0.04063529198174365,
+    "peak_heap_mib_240s": 494.91284370422363,
+    "realtime_factor_240s": 112.0359545334107,
+    "decode_600s": 0.38181312498636544,
+    "features_600s": 1.3525729160173796,
+    "beats_600s": 0.27958179198321886,
+    "key_600s": 0.00029070800519548357,
+    "loudness_600s": 2.6207143750216346,
+    "sections_600s": 0.005931291001616046,
+    "cues_600s": 0.047319708013674244,
+    "analyze_cold_600s": 5.654869958991185,
+    "analyze_cache_hit_600s": 0.08311587499338202,
+    "peak_heap_mib_600s": 1237.2749881744385,
+    "realtime_factor_600s": 106.1032356802487,
+    "process_max_rss_mib": 2425.5625,
+    "analyze_240s_cold": 2.14216945800581,
+    "analyze_cache_hit": 0.04063529198174365
+  },
+  "notes": [
+    "Synthetic input (mixconsole.testing.synth); real music may differ.",
+    "peak_heap_mib is Python/NumPy heap via tracemalloc, not full process RSS."
+  ]
+}

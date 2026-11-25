@@ -1,0 +1,569 @@
+{
+  "$defs": {
+    "AutomationLane": {
+      "additionalProperties": false,
+      "description": "Gain/send use linear amplitude, EQ uses dB, and HPF/LPF use Hz.",
+      "properties": {
+        "parameter": {
+          "enum": [
+            "gain",
+            "eq_low",
+            "eq_mid",
+            "eq_high",
+            "hpf",
+            "lpf",
+            "delay_send"
+          ],
+          "title": "Parameter",
+          "type": "string"
+        },
+        "points": {
+          "items": {
+            "$ref": "#/$defs/AutomationPoint"
+          },
+          "minItems": 1,
+          "title": "Points",
+          "type": "array"
+        },
+        "target": {
+          "discriminator": {
+            "mapping": {
+              "stem": "#/$defs/StemTarget",
+              "track": "#/$defs/TrackTarget"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/TrackTarget"
+            },
+            {
+              "$ref": "#/$defs/StemTarget"
+            }
+          ],
+          "title": "Target"
+        }
+      },
+      "required": [
+        "target",
+        "parameter",
+        "points"
+      ],
+      "title": "AutomationLane",
+      "type": "object"
+    },
+    "AutomationPoint": {
+      "additionalProperties": false,
+      "description": "Beat is relative to transition start on the reference grid; curve leads to next point.",
+      "properties": {
+        "beat": {
+          "minimum": 0,
+          "title": "Beat",
+          "type": "number"
+        },
+        "curve": {
+          "default": "linear",
+          "enum": [
+            "step",
+            "linear",
+            "equal_power",
+            "exponential"
+          ],
+          "title": "Curve",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "beat",
+        "value"
+      ],
+      "title": "AutomationPoint",
+      "type": "object"
+    },
+    "CuePoint": {
+      "additionalProperties": false,
+      "description": "Zero-based source position; beats are quarter notes on that track's grid.",
+      "properties": {
+        "beat": {
+          "minimum": 0,
+          "title": "Beat",
+          "type": "number"
+        },
+        "seconds": {
+          "minimum": 0,
+          "title": "Seconds",
+          "type": "number"
+        }
+      },
+      "required": [
+        "beat",
+        "seconds"
+      ],
+      "title": "CuePoint",
+      "type": "object"
+    },
+    "Effect": {
+      "additionalProperties": false,
+      "description": "Named effect with scalar parameters; rendering support arrives after M0.",
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "params": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          "title": "Params",
+          "type": "object"
+        },
+        "target": {
+          "discriminator": {
+            "mapping": {
+              "stem": "#/$defs/StemTarget",
+              "track": "#/$defs/TrackTarget"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/TrackTarget"
+            },
+            {
+              "$ref": "#/$defs/StemTarget"
+            }
+          ],
+          "title": "Target"
+        }
+      },
+      "required": [
+        "name",
+        "target"
+      ],
+      "title": "Effect",
+      "type": "object"
+    },
+    "Explanation": {
+      "additionalProperties": false,
+      "description": "Human-readable planning rationale.",
+      "properties": {
+        "chosen_because": {
+          "minLength": 1,
+          "title": "Chosen Because",
+          "type": "string"
+        },
+        "rejected_candidates": {
+          "items": {
+            "$ref": "#/$defs/RejectedCandidate"
+          },
+          "title": "Rejected Candidates",
+          "type": "array"
+        }
+      },
+      "required": [
+        "chosen_because"
+      ],
+      "title": "Explanation",
+      "type": "object"
+    },
+    "KeyStrategy": {
+      "additionalProperties": false,
+      "description": "Pitch intent; permission and stem feasibility are checked by later planners.",
+      "properties": {
+        "semitones": {
+          "default": 0,
+          "enum": [
+            -1,
+            0,
+            1
+          ],
+          "title": "Semitones",
+          "type": "integer"
+        },
+        "strategy": {
+          "enum": [
+            "none",
+            "pitch_shift"
+          ],
+          "title": "Strategy",
+          "type": "string"
+        }
+      },
+      "required": [
+        "strategy"
+      ],
+      "title": "KeyStrategy",
+      "type": "object"
+    },
+    "Provenance": {
+      "additionalProperties": false,
+      "description": "Versions and random seed needed to reproduce planning decisions.",
+      "properties": {
+        "analysis_backends": {
+          "additionalProperties": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Analysis Backends",
+          "type": "object"
+        },
+        "scorer_version": {
+          "minLength": 1,
+          "title": "Scorer Version",
+          "type": "string"
+        },
+        "seed": {
+          "minimum": 0,
+          "title": "Seed",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "analysis_backends",
+        "scorer_version",
+        "seed"
+      ],
+      "title": "Provenance",
+      "type": "object"
+    },
+    "RejectedCandidate": {
+      "additionalProperties": false,
+      "description": "A candidate ID and a human-readable reason for rejecting it.",
+      "properties": {
+        "candidate_id": {
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "title": "Candidate Id",
+          "type": "string"
+        },
+        "family": {
+          "enum": [
+            "gapless",
+            "trim_crossfade",
+            "cut_on_downbeat",
+            "beatmatch_blend",
+            "stem_handoff",
+            "filter_sweep",
+            "echo_out",
+            "vocal_over_instrumental"
+          ],
+          "title": "Family",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        },
+        "score": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Score"
+        }
+      },
+      "required": [
+        "candidate_id",
+        "family",
+        "reason"
+      ],
+      "title": "RejectedCandidate",
+      "type": "object"
+    },
+    "StemTarget": {
+      "additionalProperties": false,
+      "description": "Apply automation or an effect to a separated stem.",
+      "properties": {
+        "kind": {
+          "const": "stem",
+          "title": "Kind",
+          "type": "string"
+        },
+        "stem": {
+          "enum": [
+            "drums",
+            "bass",
+            "other",
+            "vocals"
+          ],
+          "title": "Stem",
+          "type": "string"
+        },
+        "track": {
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "title": "Track",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "track",
+        "stem"
+      ],
+      "title": "StemTarget",
+      "type": "object"
+    },
+    "TempoPoint": {
+      "additionalProperties": false,
+      "description": "Reference tempo at a transition-relative quarter-note beat; linear between points.",
+      "properties": {
+        "beat": {
+          "minimum": 0,
+          "title": "Beat",
+          "type": "number"
+        },
+        "bpm": {
+          "exclusiveMinimum": 0,
+          "title": "Bpm",
+          "type": "number"
+        }
+      },
+      "required": [
+        "beat",
+        "bpm"
+      ],
+      "title": "TempoPoint",
+      "type": "object"
+    },
+    "TempoStrategy": {
+      "additionalProperties": false,
+      "description": "Tempo intent plus an explicit reference tempo map, when known.",
+      "properties": {
+        "reference_track": {
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "title": "Reference Track",
+          "type": "string"
+        },
+        "strategy": {
+          "enum": [
+            "none",
+            "meet_in_middle",
+            "ramp_b_to_a_then_back",
+            "no_sync"
+          ],
+          "title": "Strategy",
+          "type": "string"
+        },
+        "tempo_map": {
+          "items": {
+            "$ref": "#/$defs/TempoPoint"
+          },
+          "title": "Tempo Map",
+          "type": "array"
+        }
+      },
+      "required": [
+        "strategy",
+        "reference_track"
+      ],
+      "title": "TempoStrategy",
+      "type": "object"
+    },
+    "Track": {
+      "additionalProperties": false,
+      "description": "A track identified by SHA-256 of canonical decoded PCM (see mixconsole.io).",
+      "properties": {
+        "content_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Content Sha256",
+          "type": "string"
+        },
+        "display_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Display Name"
+        },
+        "duration": {
+          "description": "Duration in seconds of canonical decoded audio.",
+          "exclusiveMinimum": 0,
+          "title": "Duration",
+          "type": "number"
+        },
+        "sample_rate": {
+          "exclusiveMinimum": 0,
+          "title": "Sample Rate",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "content_sha256",
+        "duration",
+        "sample_rate"
+      ],
+      "title": "Track",
+      "type": "object"
+    },
+    "TrackTarget": {
+      "additionalProperties": false,
+      "description": "Apply automation or an effect to a whole track.",
+      "properties": {
+        "kind": {
+          "const": "track",
+          "title": "Kind",
+          "type": "string"
+        },
+        "track": {
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "title": "Track",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "track"
+      ],
+      "title": "TrackTarget",
+      "type": "object"
+    },
+    "Transition": {
+      "additionalProperties": false,
+      "description": "An ordered handoff between two track IDs.",
+      "properties": {
+        "automation": {
+          "items": {
+            "$ref": "#/$defs/AutomationLane"
+          },
+          "title": "Automation",
+          "type": "array"
+        },
+        "beats_per_bar": {
+          "default": 4,
+          "description": "Quarter-note beats per reference bar.",
+          "exclusiveMinimum": 0,
+          "title": "Beats Per Bar",
+          "type": "integer"
+        },
+        "effects": {
+          "items": {
+            "$ref": "#/$defs/Effect"
+          },
+          "title": "Effects",
+          "type": "array"
+        },
+        "entry": {
+          "$ref": "#/$defs/CuePoint"
+        },
+        "exit": {
+          "$ref": "#/$defs/CuePoint"
+        },
+        "family": {
+          "enum": [
+            "gapless",
+            "trim_crossfade",
+            "cut_on_downbeat",
+            "beatmatch_blend",
+            "stem_handoff",
+            "filter_sweep",
+            "echo_out",
+            "vocal_over_instrumental"
+          ],
+          "title": "Family",
+          "type": "string"
+        },
+        "from_track": {
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "title": "From Track",
+          "type": "string"
+        },
+        "key": {
+          "$ref": "#/$defs/KeyStrategy"
+        },
+        "length_bars": {
+          "minimum": 0,
+          "title": "Length Bars",
+          "type": "integer"
+        },
+        "tempo": {
+          "$ref": "#/$defs/TempoStrategy"
+        },
+        "to_track": {
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "title": "To Track",
+          "type": "string"
+        }
+      },
+      "required": [
+        "from_track",
+        "to_track",
+        "family",
+        "exit",
+        "entry",
+        "length_bars",
+        "tempo",
+        "key"
+      ],
+      "title": "Transition",
+      "type": "object"
+    }
+  },
+  "$id": "urn:mixconsole:mixscript:v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Versioned, shareable transition specification, independent of audio paths.",
+  "properties": {
+    "explanation": {
+      "$ref": "#/$defs/Explanation"
+    },
+    "provenance": {
+      "$ref": "#/$defs/Provenance"
+    },
+    "tracks": {
+      "minProperties": 1,
+      "patternProperties": {
+        "^[A-Za-z0-9_-]+$": {
+          "$ref": "#/$defs/Track"
+        }
+      },
+      "title": "Tracks",
+      "type": "object"
+    },
+    "transitions": {
+      "items": {
+        "$ref": "#/$defs/Transition"
+      },
+      "title": "Transitions",
+      "type": "array"
+    },
+    "version": {
+      "const": "mixscript/v1",
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "version",
+    "tracks",
+    "transitions",
+    "provenance",
+    "explanation"
+  ],
+  "title": "MixScript",
+  "type": "object"
+}

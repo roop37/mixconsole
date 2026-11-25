@@ -1,0 +1,54 @@
+{
+  "version": "bench-result/v1",
+  "kind": "transitions",
+  "created": "2026-11-21T05:26:36Z",
+  "git_sha": "nogit",
+  "mixconsole": "0.0.1",
+  "machine": {
+    "os": "Darwin 27.2.0",
+    "machine": "arm64",
+    "processor": "arm",
+    "cpu_count": 10,
+    "ram_bytes": 17179869184,
+    "python": "3.12.16",
+    "packages": {
+      "numpy": "2.5.5",
+      "scipy": "1.18.1",
+      "librosa": "1.0.1",
+      "soundfile": "0.14.0",
+      "pyloudnorm": "0.2.0",
+      "torch": "2.15.0",
+      "beat-this": "1.1.0"
+    }
+  },
+  "backends": {},
+  "parameters": {
+    "cases": 10
+  },
+  "metrics": {
+    "beatmatch_blend_pass_rate": 1.0,
+    "beatmatch_blend_drift_ms": 0.005668934240362812,
+    "beatmatch_blend_dip_lu": 0.047578149008064674,
+    "beatmatch_blend_seconds": 6.308243817751645,
+    "baseline_6s_linear_pass_rate": 0.5,
+    "baseline_6s_linear_drift_ms": 0.0,
+    "baseline_6s_linear_dip_lu": 1.5972887957913897,
+    "baseline_6s_linear_true_peak_dbtp": -10.707956829428438,
+    "cut_on_downbeat_pass_rate": 1.0,
+    "cut_on_downbeat_drift_ms": 0.0,
+    "cut_on_downbeat_dip_lu": 0.04082694849130597,
+    "cut_on_downbeat_seconds": 4.5328132919967175
+  },
+  "notes": [
+    "same: beatmatch_blend, pass",
+    "plus3: beatmatch_blend, pass",
+    "minus7: beatmatch_blend, pass",
+    "overstretch: cut_on_downbeat, pass",
+    "halftime: beatmatch_blend, pass",
+    "beatless: cut_on_downbeat, pass",
+    "hard_end: beatmatch_blend, pass",
+    "fade_out: beatmatch_blend, pass",
+    "key_clash: beatmatch_blend, pass",
+    "snr20: beatmatch_blend, pass"
+  ]
+}

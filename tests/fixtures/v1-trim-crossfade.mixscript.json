@@ -1,0 +1,107 @@
+{
+  "version": "mixscript/v1",
+  "tracks": {
+    "deck_a": {
+      "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "duration": 64.0,
+      "sample_rate": 44100,
+      "display_name": "Synthetic A"
+    },
+    "deck_b": {
+      "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "duration": 64.0,
+      "sample_rate": 44100,
+      "display_name": "Synthetic B"
+    }
+  },
+  "transitions": [
+    {
+      "from_track": "deck_a",
+      "to_track": "deck_b",
+      "family": "trim_crossfade",
+      "exit": {
+        "beat": 120.0,
+        "seconds": 60.0
+      },
+      "entry": {
+        "beat": 0.0,
+        "seconds": 0.0
+      },
+      "length_bars": 2,
+      "beats_per_bar": 4,
+      "tempo": {
+        "strategy": "none",
+        "reference_track": "deck_a",
+        "tempo_map": [
+          {
+            "beat": 0.0,
+            "bpm": 120.0
+          }
+        ]
+      },
+      "key": {
+        "strategy": "none",
+        "semitones": 0
+      },
+      "automation": [
+        {
+          "target": {
+            "kind": "track",
+            "track": "deck_a"
+          },
+          "parameter": "gain",
+          "points": [
+            {
+              "beat": 0.0,
+              "value": 1.0,
+              "curve": "equal_power"
+            },
+            {
+              "beat": 8.0,
+              "value": 0.0,
+              "curve": "linear"
+            }
+          ]
+        },
+        {
+          "target": {
+            "kind": "track",
+            "track": "deck_b"
+          },
+          "parameter": "gain",
+          "points": [
+            {
+              "beat": 0.0,
+              "value": 0.0,
+              "curve": "equal_power"
+            },
+            {
+              "beat": 8.0,
+              "value": 1.0,
+              "curve": "linear"
+            }
+          ]
+        }
+      ],
+      "effects": []
+    }
+  ],
+  "provenance": {
+    "analysis_backends": {
+      "synthetic": "1"
+    },
+    "scorer_version": "manual-example/1",
+    "seed": 7
+  },
+  "explanation": {
+    "chosen_because": "Short equal-power fallback for synthetic tracks; no analysis or rendering has run.",
+    "rejected_candidates": [
+      {
+        "candidate_id": "long_blend",
+        "family": "beatmatch_blend",
+        "reason": "Beat confidence is unavailable in this illustrative fixture.",
+        "score": 0.25
+      }
+    ]
+  }
+}

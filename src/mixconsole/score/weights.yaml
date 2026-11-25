@@ -1,0 +1,31 @@
+# Higher-is-better features, each normalized to [0, 1]. Weights sum to 1.
+auto:
+  phrase_alignment: 0.10
+  key_compatibility: 0.12
+  energy_continuity: 0.12
+  stretch_cost: 0.04
+  section_fit: 0.08
+  length_fit: 0.08
+  wasted_audio: 0.08
+  loudness_gap: 0.07
+  family_prior: 0.31
+smooth:
+  phrase_alignment: 0.12
+  key_compatibility: 0.10
+  energy_continuity: 0.14
+  stretch_cost: 0.12
+  section_fit: 0.08
+  length_fit: 0.08
+  wasted_audio: 0.10
+  loudness_gap: 0.08
+  family_prior: 0.18
+club:
+  phrase_alignment: 0.11
+  key_compatibility: 0.12
+  energy_continuity: 0.12
+  stretch_cost: 0.10
+  section_fit: 0.08
+  length_fit: 0.11
+  wasted_audio: 0.06
+  loudness_gap: 0.05
+  family_prior: 0.25

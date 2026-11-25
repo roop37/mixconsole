@@ -1,0 +1,5 @@
+max_retries = 3
+timeout = 20
+include_mail = false
+# These are repository directory links, resolved by GitHub but not static files.
+exclude = ['^examples/$']

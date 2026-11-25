@@ -1,0 +1,54 @@
+default_install_hook_types: [pre-commit, commit-msg]
+repos:
+  - repo: local
+    hooks:
+      - id: ruff
+        name: ruff check
+        entry: uv run ruff check
+        language: system
+        types_or: [python, pyi]
+      - id: ruff-format
+        name: ruff format check
+        entry: uv run ruff format --check
+        language: system
+        types_or: [python, pyi]
+      - id: pyright
+        name: pyright
+        entry: uv run pyright
+        language: system
+        pass_filenames: false
+        types_or: [python, pyi]
+      - id: check-added-large-files
+        name: reject files over 500 KB
+        entry: uv run check-added-large-files --maxkb=500
+        language: system
+      - id: end-of-file-fixer
+        name: fix end of file
+        entry: uv run end-of-file-fixer
+        language: system
+        types: [text]
+      - id: trailing-whitespace
+        name: trim trailing whitespace
+        entry: uv run trailing-whitespace-fixer
+        language: system
+        types: [text]
+      - id: check-yaml
+        name: check YAML
+        entry: uv run check-yaml
+        language: system
+        types: [yaml]
+      - id: check-toml
+        name: check TOML
+        entry: uv run check-toml
+        language: system
+        types: [toml]
+      - id: block-audio-weights
+        name: block audio and weights
+        entry: uv run python scripts/repo_guard.py
+        language: system
+        types: [file]
+      - id: conventional-commit
+        name: conventional commit subject
+        entry: uv run python scripts/repo_guard.py --commit-msg
+        language: system
+        stages: [commit-msg]

@@ -1,0 +1,106 @@
+{
+  "explanation": {
+    "chosen_because": "Short equal-power fallback for synthetic tracks; no analysis or rendering has run.",
+    "rejected_candidates": [
+      {
+        "candidate_id": "long_blend",
+        "family": "beatmatch_blend",
+        "reason": "Beat confidence is unavailable in this illustrative fixture.",
+        "score": 0.25
+      }
+    ]
+  },
+  "provenance": {
+    "analysis_backends": {
+      "synthetic": "1"
+    },
+    "scorer_version": "manual-example/1",
+    "seed": 7
+  },
+  "tracks": {
+    "deck_a": {
+      "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "display_name": "Synthetic A",
+      "duration": 64.0,
+      "sample_rate": 44100
+    },
+    "deck_b": {
+      "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "display_name": "Synthetic B",
+      "duration": 64.0,
+      "sample_rate": 44100
+    }
+  },
+  "transitions": [
+    {
+      "automation": [
+        {
+          "id": "transition_0_automation_0",
+          "parameter": "gain",
+          "points": [
+            {
+              "beat": 0.0,
+              "curve": "equal_power",
+              "value": 1.0
+            },
+            {
+              "beat": 8.0,
+              "value": 0.0
+            }
+          ],
+          "target": {
+            "kind": "track",
+            "track": "deck_a"
+          }
+        },
+        {
+          "id": "transition_0_automation_1",
+          "parameter": "gain",
+          "points": [
+            {
+              "beat": 0.0,
+              "curve": "equal_power",
+              "value": 0.0
+            },
+            {
+              "beat": 8.0,
+              "value": 1.0
+            }
+          ],
+          "target": {
+            "kind": "track",
+            "track": "deck_b"
+          }
+        }
+      ],
+      "entry": {
+        "beat": 0.0,
+        "seconds": 0.0
+      },
+      "exit": {
+        "beat": 120.0,
+        "seconds": 60.0
+      },
+      "family": "trim_crossfade",
+      "from_track": "deck_a",
+      "id": "transition_0",
+      "key": {
+        "strategy": "none"
+      },
+      "length_bars": 2,
+      "locks": [],
+      "tempo": {
+        "reference_track": "deck_a",
+        "strategy": "none",
+        "tempo_map": [
+          {
+            "beat": 0.0,
+            "bpm": 120.0
+          }
+        ]
+      },
+      "to_track": "deck_b"
+    }
+  ],
+  "version": "mixscript/v1.1"
+}
